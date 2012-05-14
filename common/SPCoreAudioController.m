@@ -255,10 +255,6 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
 	AUGraphUninitialize(audioProcessingGraph);
 	DisposeAUGraph(audioProcessingGraph);
 	
-#if TARGET_OS_IPHONE
-	[[AVAudioSession sharedInstance] setActive:NO error:nil];
-#endif
-	
 	audioProcessingGraph = NULL;
 	outputUnit = NULL;
 	mixerUnit = NULL;
@@ -273,18 +269,6 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
     
     if (audioProcessingGraph != NULL)
         [self teardownCoreAudio];
-	
-#if TARGET_OS_IPHONE
-	NSError *error = nil;
-	BOOL success = YES;
-	success &= [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&error];
-	success &= [[AVAudioSession sharedInstance] setActive:YES error:&error];
-	
-	if (!success && err != NULL) {
-		*err = error;
-		return NO;
-	}
-#endif
 	
     // A description of the output device we're looking for.
     AudioComponentDescription outputDescription;
