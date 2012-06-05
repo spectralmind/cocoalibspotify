@@ -39,7 +39,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static NSUInteger const SPImageIdLength = 20;
 
-@interface SPImage : NSObject
+@interface SPImage : NSObject <SPAsyncLoading, SPDelayableAsyncLoading>
 
 ///----------------------------
 /// @name Creating and Initializing Images
@@ -49,6 +49,9 @@ static NSUInteger const SPImageIdLength = 20;
  
  This convenience method creates an SPImage object if one doesn't exist, or 
  returns a cached SPImage if one already exists for the given ID.
+ 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
  
  @param imageId The image ID to create an SPImage for.
  @param aSession The SPSession the image should exist in.
@@ -63,13 +66,16 @@ static NSUInteger const SPImageIdLength = 20;
  
  @param imageURL The image URL to create an SPImage for.
  @param aSession The SPSession the image should exist in.
- @return Returns the created SPImage object. 
+ @param block The block to be called with the created SPImage object. 
  */
-+(SPImage *)imageWithImageURL:(NSURL *)imageURL inSession:(SPSession *)aSession;
++(void)imageWithImageURL:(NSURL *)imageURL inSession:(SPSession *)aSession callback:(void (^)(SPImage *image))block;
 
 /** Initializes a new SPImage from the given struct and ID. 
  
- @warning *Important:* For better performance and built-in caching, it is recommended
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning For better performance and built-in caching, it is recommended
  you create SPImage objects using +[SPImage imageWithImageId:inSession:].
  
  @param anImage The sp_image struct to create an SPImage for, or NULL if the image hasn't been loaded yet.
@@ -86,7 +92,7 @@ static NSUInteger const SPImageIdLength = 20;
 /** Begins loading the image if it hasn't already been loaded. 
  
  This is called automatically if you request the image property. */
--(void)beginLoading;
+-(void)startLoading;
 
 ///----------------------------
 /// @name Properties
@@ -106,7 +112,10 @@ static NSUInteger const SPImageIdLength = 20;
 
 /** Returns the opaque structure used by the C LibSpotify API, or NULL if the image has yet to be loaded.
  
- @warning *Important:* This should only be used if you plan to directly use the 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning This should only be used if you plan to directly use the 
  C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
  API directly on items that have CocoaLibSpotify objects associated with them. 
  */

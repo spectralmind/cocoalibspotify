@@ -52,11 +52,11 @@
 	
 	<option value="//api/name/hasExhaustedTrackResults">&nbsp;&nbsp;&nbsp;&nbsp;hasExhaustedTrackResults</option>
 	
+	<option value="//api/name/loaded">&nbsp;&nbsp;&nbsp;&nbsp;loaded</option>
+	
 	<option value="//api/name/playlists">&nbsp;&nbsp;&nbsp;&nbsp;playlists</option>
 	
 	<option value="//api/name/searchError">&nbsp;&nbsp;&nbsp;&nbsp;searchError</option>
-	
-	<option value="//api/name/searchInProgress">&nbsp;&nbsp;&nbsp;&nbsp;searchInProgress</option>
 	
 	<option value="//api/name/searchQuery">&nbsp;&nbsp;&nbsp;&nbsp;searchQuery</option>
 	
@@ -152,11 +152,11 @@
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/hasExhaustedTrackResults">hasExhaustedTrackResults</a></span></li>
 	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/loaded">loaded</a></span></li>
+	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/playlists">playlists</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/searchError">searchError</a></span></li>
-	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/searchInProgress">searchInProgress</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/searchQuery">searchQuery</a></span></li>
 	
@@ -236,6 +236,9 @@
 	<td class="specification-title">Inherits from</td>
 	<td class="specification-value">NSObject</td>
 </tr><tr>
+	<td class="specification-title">Conforms to</td>
+	<td class="specification-value"><a href="../Protocols/SPAsyncLoading.html">SPAsyncLoading</a></td>
+</tr><tr>
 	<td class="specification-title">Declared in</td>
 	<td class="specification-value">SPSearch.h<br />SPSearch.m</td>
 </tr>
@@ -247,7 +250,7 @@
 					<div class="section section-overview">
 						<a title="Overview" name="overview"></a>
 						<h2 class="subtitle subtitle-overview">Overview</h2>
-						<p>The &ldquo;do not search&rdquo; page size. Used if you don&rsquo;t want to search for a particular kind of result.</p>
+						<p>This class performs a search on the Spotify catalogue available to the given <a href="#//api/name/session">session</a>, returning <a href="#//api/name/tracks">tracks</a>, <a href="#//api/name/albums">albums</a> and <a href="#//api/name/artists">artists</a>.</p>
 					</div>
 					
 					
@@ -380,7 +383,7 @@
 							<li>
 	<span class="tooltip">
 		<code><a href="#//api/name/suggestedSearchQuery">&nbsp;&nbsp;suggestedSearchQuery</a></code>
-		<span class="tooltip"><p>Returns a &ldquo;suggested&rdquo; search query provided by the search service, or <code>nil</code> if the search has not loaded or there is no suggested query.</p></span>
+		<span class="tooltip"><p>Returns a &ldquo;suggested&rdquo; search query provided by the search service, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there is no suggested query.</p></span>
 	</span>
 	<span class="task-item-suffix">property</span>
 	
@@ -415,28 +418,28 @@
 </li><li>
 	<span class="tooltip">
 		<code><a href="#//api/name/albums">&nbsp;&nbsp;albums</a></code>
-		<span class="tooltip"><p>Returns the album results of the search, or <code>nil</code> if the search has not loaded or there are no album results.</p></span>
+		<span class="tooltip"><p>Returns the album results of the search, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there are no album results.</p></span>
 	</span>
 	<span class="task-item-suffix">property</span>
 	
 </li><li>
 	<span class="tooltip">
 		<code><a href="#//api/name/artists">&nbsp;&nbsp;artists</a></code>
-		<span class="tooltip"><p>Returns the artist results of the search, or <code>nil</code> if the search has not loaded or there are no artist results.</p></span>
+		<span class="tooltip"><p>Returns the artist results of the search, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there are no artist results.</p></span>
 	</span>
 	<span class="task-item-suffix">property</span>
 	
 </li><li>
 	<span class="tooltip">
 		<code><a href="#//api/name/tracks">&nbsp;&nbsp;tracks</a></code>
-		<span class="tooltip"><p>Returns the track results of the search, or <code>nil</code> if the search has not loaded or there are no track results.</p></span>
+		<span class="tooltip"><p>Returns the track results of the search, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there are no track results.</p></span>
 	</span>
 	<span class="task-item-suffix">property</span>
 	
 </li><li>
 	<span class="tooltip">
 		<code><a href="#//api/name/playlists">&nbsp;&nbsp;playlists</a></code>
-		<span class="tooltip"><p>Returns the playlist results of the search, or <code>nil</code> if the search has not loaded or there are no playlist results.</p></span>
+		<span class="tooltip"><p>Returns the playlist results of the search, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there are no playlist results.</p></span>
 	</span>
 	<span class="task-item-suffix">property</span>
 	
@@ -457,8 +460,8 @@
 	
 </li><li>
 	<span class="tooltip">
-		<code><a href="#//api/name/searchInProgress">&nbsp;&nbsp;searchInProgress</a></code>
-		<span class="tooltip"><p>Returns <code>YES</code> if a search is currently in progress, or <code>NO</code> if the search is complete (or has failed).</p></span>
+		<code><a href="#//api/name/loaded">&nbsp;&nbsp;loaded</a></code>
+		<span class="tooltip"><p>Returns <code>NO</code> if a search is currently in progress, or <code>YES</code> if the search is complete (or has failed).</p></span>
 	</span>
 	<span class="task-item-suffix">property</span>
 	
@@ -510,7 +513,7 @@
 	
 	
 	<div class="method-subsection brief-description">
-		<p>Returns the album results of the search, or <code>nil</code> if the search has not loaded or there are no album results.</p>
+		<p>Returns the album results of the search, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there are no album results.</p>
 	</div>		
 	
 	
@@ -544,7 +547,7 @@
 	
 	
 	<div class="method-subsection brief-description">
-		<p>Returns the artist results of the search, or <code>nil</code> if the search has not loaded or there are no artist results.</p>
+		<p>Returns the artist results of the search, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there are no artist results.</p>
 	</div>		
 	
 	
@@ -708,13 +711,47 @@
 </div>
 						
 						<div class="section-method">
+	<a name="//api/name/loaded" title="loaded"></a>
+	<h3 class="subsubtitle method-title">loaded</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns <code>NO</code> if a search is currently in progress, or <code>YES</code> if the search is complete (or has failed).</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, getter=isLoaded) BOOL loaded</code></div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPSearch.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
 	<a name="//api/name/playlists" title="playlists"></a>
 	<h3 class="subsubtitle method-title">playlists</h3>
 	
 	
 	
 	<div class="method-subsection brief-description">
-		<p>Returns the playlist results of the search, or <code>nil</code> if the search has not loaded or there are no playlist results.</p>
+		<p>Returns the playlist results of the search, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there are no playlist results.</p>
 	</div>		
 	
 	
@@ -753,40 +790,6 @@
 	
 	
 	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, copy) NSError *searchError</code></div>
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	<div class="method-subsection declared-in-section">
-		<h4 class="method-subtitle">Declared In</h4>
-		<code class="declared-in-ref">SPSearch.h</code><br />
-	</div>				
-	
-	
-</div>
-						
-						<div class="section-method">
-	<a name="//api/name/searchInProgress" title="searchInProgress"></a>
-	<h3 class="subsubtitle method-title">searchInProgress</h3>
-	
-	
-	
-	<div class="method-subsection brief-description">
-		<p>Returns <code>YES</code> if a search is currently in progress, or <code>NO</code> if the search is complete (or has failed).</p>
-	</div>		
-	
-	
-	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly) BOOL searchInProgress</code></div>
 	
 	
 	
@@ -952,7 +955,7 @@
 	
 	
 	<div class="method-subsection brief-description">
-		<p>Returns a &ldquo;suggested&rdquo; search query provided by the search service, or <code>nil</code> if the search has not loaded or there is no suggested query.</p>
+		<p>Returns a &ldquo;suggested&rdquo; search query provided by the search service, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there is no suggested query.</p>
 	</div>		
 	
 	
@@ -991,7 +994,7 @@
 	
 	
 	<div class="method-subsection brief-description">
-		<p>Returns the track results of the search, or <code>nil</code> if the search has not loaded or there are no track results.</p>
+		<p>Returns the track results of the search, or <code>nil</code> if the search has not <a href="#//api/name/loaded">loaded</a> or there are no track results.</p>
 	</div>		
 	
 	
@@ -1070,7 +1073,7 @@
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>Live searches should be used when displaying &ldquo;live search&rdquo; UI — for example, a search suggestion
 UI as the user is typing into a search field. This convenience method is simply returns a new,
-autoreleased SPSearch object. No caching is performed.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> The search query will be sent to the Spotify search service
+autoreleased SPSearch object. No caching is performed.</p><div class="warning"><p><strong>Warning:</strong> The search query will be sent to the Spotify search service
 immediately. Be sure you want to perform the search before creating the object!</p></div>
 	</div>
 	
@@ -1131,7 +1134,7 @@ immediately. Be sure you want to perform the search before creating the object!<
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This convenience method is simply returns a new, autoreleased SPSearch
-object. No caching is performed.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> The search query will be sent to the Spotify search service
+object. No caching is performed.</p><div class="warning"><p><strong>Warning:</strong> The search query will be sent to the Spotify search service
 immediately. Be sure you want to perform the search before creating the object!</p></div>
 	</div>
 	
@@ -1192,8 +1195,8 @@ immediately. Be sure you want to perform the search before creating the object!<
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This convenience method is simply returns a new, autoreleased SPSearch
-object. No caching is performed.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you pass in an invalid search URL (i.e., any URL not
-starting <code>spotify:search:</code>, this method will return <code>nil</code>.</p></div><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> The search query will be sent to the Spotify search service
+object. No caching is performed.</p><div class="warning"><p><strong>Warning:</strong> If you pass in an invalid search URL (i.e., any URL not
+starting <code>spotify:search:</code>, this method will return <code>nil</code>.</p></div><div class="warning"><p><strong>Warning:</strong> The search query will be sent to the Spotify search service
 immediately. Be sure you want to perform the search before creating the object!</p></div>
 	</div>
 	
@@ -1247,7 +1250,7 @@ or if a search is already in progress.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<p>The <a href="#//api/name/albums">albums</a> property will be updated when new results are returned.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you want to request more than just <a href="#//api/name/albums">albums</a>, use
+		<p>The <a href="#//api/name/albums">albums</a> property will be updated when new results are returned.</p><div class="warning"><p><strong>Warning:</strong> If you want to request more than just <a href="#//api/name/albums">albums</a>, use
 <a href="#//api/name/addPageForArtists:albums:tracks:playlists:"><code>addPageForArtists:albums:tracks:playlists:</code></a> for better performance.</p></div>
 	</div>
 	
@@ -1293,7 +1296,7 @@ or if a search is already in progress.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<p>  The <a href="#//api/name/artists">artists</a> property will be updated when new results are returned.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you want to request more than just <a href="#//api/name/artists">artists</a>, use
+		<p>  The <a href="#//api/name/artists">artists</a> property will be updated when new results are returned.</p><div class="warning"><p><strong>Warning:</strong> If you want to request more than just <a href="#//api/name/artists">artists</a>, use
 <a href="#//api/name/addPageForArtists:albums:tracks:playlists:"><code>addPageForArtists:albums:tracks:playlists:</code></a> for better performance.</p></div>
 	</div>
 	
@@ -1409,7 +1412,7 @@ or if a search is already in progress.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<p>The <a href="#//api/name/playlists">playlists</a> property will be updated when new results are returned.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you want to request more than just <a href="#//api/name/playlists">playlists</a>, use
+		<p>The <a href="#//api/name/playlists">playlists</a> property will be updated when new results are returned.</p><div class="warning"><p><strong>Warning:</strong> If you want to request more than just <a href="#//api/name/playlists">playlists</a>, use
 <a href="#//api/name/addPageForArtists:albums:tracks:playlists:"><code>addPageForArtists:albums:tracks:playlists:</code></a> for better performance.</p></div>
 	</div>
 	
@@ -1455,7 +1458,7 @@ or if a search is already in progress.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<p>  The <a href="#//api/name/tracks">tracks</a> property will be updated when new results are returned.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you want to request more than just <a href="#//api/name/tracks">tracks</a>, use
+		<p>  The <a href="#//api/name/tracks">tracks</a> property will be updated when new results are returned.</p><div class="warning"><p><strong>Warning:</strong> If you want to request more than just <a href="#//api/name/tracks">tracks</a>, use
 <a href="#//api/name/addPageForArtists:albums:tracks:playlists:"><code>addPageForArtists:albums:tracks:playlists:</code></a> for better performance.</p></div>
 	</div>
 	
@@ -1515,7 +1518,7 @@ or if a search is already in progress.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> The search query will be sent to the Spotify search service
+		<div class="warning"><p><strong>Warning:</strong> The search query will be sent to the Spotify search service
 immediately. Be sure you want to perform the search before creating the object!</p></div>
 	</div>
 	
@@ -1582,7 +1585,7 @@ immediately. Be sure you want to perform the search before creating the object!<
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>If you are displaying &ldquo;live search&rdquo; UI — for example, a search suggestion
 UI as the user is typing into a search field — pass <code>SP_SEARCH_SUGGEST</code> to <code>type</code>
-for more appropriate results.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> The search query will be sent to the Spotify search service
+for more appropriate results.</p><div class="warning"><p><strong>Warning:</strong> The search query will be sent to the Spotify search service
 immediately. Be sure you want to perform the search before creating the object!</p></div>
 	</div>
 	
@@ -1647,7 +1650,7 @@ immediately. Be sure you want to perform the search before creating the object!<
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> The search query will be sent to the Spotify search service
+		<div class="warning"><p><strong>Warning:</strong> The search query will be sent to the Spotify search service
 immediately. Be sure you want to perform the search before creating the object!</p></div>
 	</div>
 	
@@ -1719,7 +1722,7 @@ immediately. Be sure you want to perform the search before creating the object!<
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>If you are displaying &ldquo;live search&rdquo; UI — for example, a search suggestion
 UI as the user is typing into a search field — pass <code>SP_SEARCH_SUGGEST</code> to <code>type</code>
-for more appropriate results.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> The search query will be sent to the Spotify search service
+for more appropriate results.</p><div class="warning"><p><strong>Warning:</strong> The search query will be sent to the Spotify search service
 immediately. Be sure you want to perform the search before creating the object!</p></div>
 	</div>
 	
@@ -1779,7 +1782,7 @@ immediately. Be sure you want to perform the search before creating the object!<
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you pass in an invalid search URL (i.e., any URL not
+		<div class="warning"><p><strong>Warning:</strong> If you pass in an invalid search URL (i.e., any URL not
 starting <code>spotify:search:</code>, this method will return <code>nil</code>.</p></div>
 	</div>
 	
@@ -1844,8 +1847,8 @@ starting <code>spotify:search:</code>, this method will return <code>nil</code>.
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you pass in an invalid search URL (i.e., any URL not
-starting <code>spotify:search:</code>, this method will return <code>nil</code>.</p></div><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> The search query will be sent to the Spotify search service
+		<div class="warning"><p><strong>Warning:</strong> If you pass in an invalid search URL (i.e., any URL not
+starting <code>spotify:search:</code>, this method will return <code>nil</code>.</p></div><div class="warning"><p><strong>Warning:</strong> The search query will be sent to the Spotify search service
 immediately. Be sure you want to perform the search before creating the object!</p></div>
 	</div>
 	
@@ -1876,7 +1879,7 @@ immediately. Be sure you want to perform the search before creating the object!<
 				<div id="footer">
 					<hr />
 					<div class="footer-copyright">
-						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-04-02)</span><br />
+						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-05-23)</span><br />
 						
 						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.0.5 (build 789)</a>.</span></p>
 						

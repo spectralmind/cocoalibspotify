@@ -291,7 +291,9 @@
 	self.navigationItem.rightBarButtonItem = self.loginButton;
 	[self positionLoggingInView];
 	[self switchViewToLoggingInState:NO];
-	self.usernameField.text = self.session.storedCredentialsUserName;
+	[self.session fetchStoredCredentialsUserName:^(NSString *username) {
+		self.usernameField.text = username;
+	}];
 	
 	[self.usernameField becomeFirstResponder];
 }

@@ -42,6 +42,16 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #import "SPPlaylistItem.h"
 #import "SPPlaylistItemInternal.h"
 
+@interface SPPlaylistCallbackProxy : NSObject
+// SPPlaylistCallbackProxy is here to bridge the gap between -dealloc and the 
+// playlist callbacks being unregistered, since that's done async.
+@property (nonatomic, readwrite, assign) __unsafe_unretained SPPlaylist *playlist;
+@end
+
+@implementation SPPlaylistCallbackProxy
+@synthesize playlist;
+@end
+
 @interface SPPlaylist ()
 
 @property (nonatomic, readwrite, getter=isUpdating) BOOL updating;
@@ -51,15 +61,18 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @property (nonatomic, readwrite, copy) NSURL *spotifyURL;
 @property (nonatomic, readwrite, strong) SPImage *image;
 @property (nonatomic, readwrite, strong) SPUser *owner;
-@property (nonatomic, readwrite) BOOL trackChangesAreFromLibSpotifyCallback;
-@property (nonatomic, readwrite, strong) NSMutableArray *itemWrapper;
 @property (nonatomic, readwrite, strong) NSArray *subscribers;
 @property (nonatomic, readwrite) float offlineDownloadProgress;
 @property (nonatomic, readwrite) sp_playlist_offline_status offlineStatus;
 @property (nonatomic, readwrite) sp_playlist *playlist;
 @property (nonatomic, readwrite, assign) __unsafe_unretained SPSession *session;
+@property (nonatomic, readwrite, strong) SPPlaylistCallbackProxy *callbackProxy;
+@property (nonatomic, readwrite, copy) NSArray *items;
 
--(void)rebuildItems;
+@property (nonatomic, readwrite, strong) NSMutableArray *moveCallbackStack;
+@property (nonatomic, readwrite, strong) NSMutableArray *addCallbackStack;
+@property (nonatomic, readwrite, strong) NSMutableArray *removeCallbackStack;
+
 -(void)loadPlaylistData;
 -(void)rebuildSubscribers;
 -(void)resetItemIndexes;
@@ -75,7 +88,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Called when one or more tracks have been added to a playlist
 static void tracks_added(sp_playlist *pl, sp_track *const *tracks, int num_tracks, int position, void *userdata) {
     
-	SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
 	
 	NSMutableArray *newItems = [NSMutableArray arrayWithCapacity:num_tracks];
 	
@@ -88,25 +103,39 @@ static void tracks_added(sp_playlist *pl, sp_track *const *tracks, int num_track
 		}
 	}
 	
-	NSIndexSet *incomingIndexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(position, [newItems count])];
-	
-	if ([[playlist delegate] respondsToSelector:@selector(playlist:willAddItems:atIndexes:)]) {
-		[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willAddItems:newItems atIndexes:incomingIndexes];
+	SPErrorableOperationCallback callback = nil;
+	if (playlist.addCallbackStack.count > 0) {
+		callback = [playlist.addCallbackStack objectAtIndex:0];
+		[playlist.addCallbackStack removeObjectAtIndex:0];
 	}
 	
-	playlist.trackChangesAreFromLibSpotifyCallback = YES;
-	[playlist.items insertObjects:newItems atIndexes:incomingIndexes];
-	playlist.trackChangesAreFromLibSpotifyCallback = NO;
-	
-	if ([[playlist delegate] respondsToSelector:@selector(playlist:didAddItems:atIndexes:)]) {
-		[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didAddItems:newItems atIndexes:incomingIndexes];
-	}
+	dispatch_async(dispatch_get_main_queue(), ^{
+		
+		NSIndexSet *incomingIndexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(position, [newItems count])];
+		
+		if ([[playlist delegate] respondsToSelector:@selector(playlist:willAddItems:atIndexes:)]) {
+			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willAddItems:newItems atIndexes:incomingIndexes];
+		}
+		
+		NSMutableArray *mutableItems = [playlist.items mutableCopy];
+		[mutableItems insertObjects:newItems atIndexes:incomingIndexes];
+		playlist.items = [NSArray arrayWithArray:mutableItems];
+		[playlist resetItemIndexes];
+		
+		if ([[playlist delegate] respondsToSelector:@selector(playlist:didAddItems:atIndexes:)]) {
+			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didAddItems:newItems atIndexes:incomingIndexes];
+		}
+		
+		if (callback) callback(nil);
+	});
 }
 
 // Called when one or more tracks have been removed from a playlist
 static void	tracks_removed(sp_playlist *pl, const int *tracks, int num_tracks, void *userdata) {
 
-	SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;	
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
 	
 	NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
 	
@@ -115,25 +144,39 @@ static void	tracks_removed(sp_playlist *pl, const int *tracks, int num_tracks, v
 		[indexes addIndex:thisIndex];
 	}
 	
-	NSArray *outgoingItems = [playlist.items objectsAtIndexes:indexes];
-	
-	if ([[playlist delegate] respondsToSelector:@selector(playlist:willRemoveItems:atIndexes:)]) {
-		[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willRemoveItems:outgoingItems atIndexes:indexes];
+	SPErrorableOperationCallback callback = nil;
+	if (playlist.removeCallbackStack.count > 0) {
+		callback = [playlist.removeCallbackStack objectAtIndex:0];
+		[playlist.removeCallbackStack removeObjectAtIndex:0];
 	}
 	
-	playlist.trackChangesAreFromLibSpotifyCallback = YES;
-	[playlist.items removeObjectsAtIndexes:indexes];
-	playlist.trackChangesAreFromLibSpotifyCallback = NO;
-	
-	if ([[playlist delegate] respondsToSelector:@selector(playlist:didRemoveItems:atIndexes:)]) {
-		[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didRemoveItems:outgoingItems atIndexes:indexes];
-	}
+	dispatch_async(dispatch_get_main_queue(), ^{
+		
+		NSArray *outgoingItems = [playlist.items objectsAtIndexes:indexes];
+		
+		if ([[playlist delegate] respondsToSelector:@selector(playlist:willRemoveItems:atIndexes:)]) {
+			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willRemoveItems:outgoingItems atIndexes:indexes];
+		}
+		
+		NSMutableArray *mutableItems = [playlist.items mutableCopy];
+		[mutableItems removeObjectsAtIndexes:indexes];
+		playlist.items = [NSArray arrayWithArray:mutableItems];
+		[playlist resetItemIndexes];
+		
+		if ([[playlist delegate] respondsToSelector:@selector(playlist:didRemoveItems:atIndexes:)]) {
+			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didRemoveItems:outgoingItems atIndexes:indexes];
+		}
+		
+		if (callback) callback(nil);
+	});
 }
 
 // Called when one or more tracks have been moved within a playlist
 static void	tracks_moved(sp_playlist *pl, const int *tracks, int num_tracks, int new_position, void *userdata) {
     
-	SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
 	
 	NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
 	NSUInteger newStartIndex = new_position;
@@ -146,34 +189,48 @@ static void	tracks_moved(sp_playlist *pl, const int *tracks, int num_tracks, int
 		}
 	}
 	
-	NSMutableArray *playlistItems = playlist.items;
-	NSArray *movedItems = [playlistItems objectsAtIndexes:indexes];
-	NSMutableIndexSet *newIndexes = [NSMutableIndexSet indexSetWithIndexesInRange:NSMakeRange(newStartIndex, [movedItems count])];
-	
-	if ([[playlist delegate] respondsToSelector:@selector(playlist:willMoveItems:atIndexes:toIndexes:)]) {
-		[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willMoveItems:movedItems atIndexes:indexes toIndexes:newIndexes];
+	SPErrorableOperationCallback callback = nil;
+	if (playlist.moveCallbackStack.count > 0) {
+		callback = [playlist.moveCallbackStack objectAtIndex:0];
+		[playlist.moveCallbackStack removeObjectAtIndex:0];
 	}
 	
-	NSMutableArray *newItemArray = [NSMutableArray arrayWithArray:playlistItems];
-	[newItemArray removeObjectsAtIndexes:indexes];
-	[newItemArray insertObjects:movedItems atIndexes:newIndexes];
-	
-	playlist.trackChangesAreFromLibSpotifyCallback = YES;
-	[playlist willChangeValueForKey:@"items"];
-	playlist.itemWrapper = newItemArray;
-	[playlist resetItemIndexes];
-	[playlist didChangeValueForKey:@"items"];
-	playlist.trackChangesAreFromLibSpotifyCallback = NO;
-	
-	if ([[playlist delegate] respondsToSelector:@selector(playlist:didMoveItems:atIndexes:toIndexes:)]) {
-		[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didMoveItems:movedItems atIndexes:indexes toIndexes:newIndexes];
-	}
+	dispatch_async(dispatch_get_main_queue(), ^{
+		
+		NSMutableArray *playlistItems = [playlist.items mutableCopy];
+		NSArray *movedItems = [playlistItems objectsAtIndexes:indexes];
+		NSMutableIndexSet *newIndexes = [NSMutableIndexSet indexSetWithIndexesInRange:NSMakeRange(newStartIndex, [movedItems count])];
+		
+		if ([[playlist delegate] respondsToSelector:@selector(playlist:willMoveItems:atIndexes:toIndexes:)]) {
+			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willMoveItems:movedItems atIndexes:indexes toIndexes:newIndexes];
+		}
+		
+		NSMutableArray *newItemArray = [NSMutableArray arrayWithArray:playlistItems];
+		[newItemArray removeObjectsAtIndexes:indexes];
+		[newItemArray insertObjects:movedItems atIndexes:newIndexes];
+		
+		playlist.items = [NSArray arrayWithArray:newItemArray];
+		[playlist resetItemIndexes];
+		
+		if ([[playlist delegate] respondsToSelector:@selector(playlist:didMoveItems:atIndexes:toIndexes:)]) {
+			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didMoveItems:movedItems atIndexes:indexes toIndexes:newIndexes];
+		}
+		
+		 if (callback) callback(nil);
+	});
 }
 
 // Called when a playlist has been renamed. sp_playlist_name() can be used to find out the new name
 static void	playlist_renamed(sp_playlist *pl, void *userdata) {
+	
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
+	
     NSString *name = [NSString stringWithUTF8String:sp_playlist_name(pl)];
-    [(__bridge SPPlaylist *)userdata setPlaylistNameFromLibSpotifyUpdate:name];
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[playlist setPlaylistNameFromLibSpotifyUpdate:name];
+	});
 }
 
 /*
@@ -186,88 +243,139 @@ static void	playlist_renamed(sp_playlist *pl, void *userdata) {
  The playlist started loading, or finished loading
  */
 static void	playlist_state_changed(sp_playlist *pl, void *userdata) {
-    SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
-	
-    [playlist setLoaded:sp_playlist_is_loaded(pl)];
-    [playlist setCollaborativeFromLibSpotifyUpdate:sp_playlist_is_collaborative(pl)];
-    [playlist setHasPendingChanges:sp_playlist_has_pending_changes(pl)];
+    
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
 	
 	[playlist offlineSyncStatusMayHaveChanged];
+	
+	BOOL isLoaded = sp_playlist_is_loaded(pl);
+	
+	dispatch_async(dispatch_get_main_queue(), ^{
+		if (isLoaded)
+			[playlist loadPlaylistData];
+	});
 }
 
 // Called when a playlist is updating or is done updating
 static void	playlist_update_in_progress(sp_playlist *pl, bool done, void *userdata) {
-    SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
+   
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
 	
-	if (playlist.isUpdating == done && [playlist playlist] == pl)
-		playlist.updating = !done;
+	dispatch_async(dispatch_get_main_queue(), ^{
+		if (playlist.isUpdating == done)
+			playlist.updating = !done;
+	});
 }
 
 // Called when metadata for one or more tracks in a playlist has been updated.
 static void	playlist_metadata_updated(sp_playlist *pl, void *userdata) {
-    SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
+    
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
     
 	@autoreleasepool {
 		
-		for (SPPlaylistItem *playlistItem in playlist.items) {
-			if (playlistItem.itemClass == [SPTrack class]) {
-				SPTrack *track = playlistItem.item;
-				[track setOfflineStatusFromLibSpotifyUpdate:sp_track_offline_get_status(track.track)];
+		dispatch_async(dispatch_get_main_queue(), ^{
+			for (SPPlaylistItem *playlistItem in playlist.items) {
+				if (playlistItem.itemClass == [SPTrack class]) {
+					SPTrack *track = playlistItem.item;
+					// This is so bad it makes my head hurt
+					dispatch_async([SPSession libSpotifyQueue], ^{
+						sp_track_offline_status status = sp_track_offline_get_status(track.track);
+						dispatch_async(dispatch_get_main_queue(), ^() { [track setOfflineStatusFromLibSpotifyUpdate:status]; });
+					});
+				}
 			}
-		}
-		
-		if ([[playlist delegate] respondsToSelector:@selector(itemsInPlaylistDidUpdateMetadata:)]) {
-            [playlist.delegate itemsInPlaylistDidUpdateMetadata:playlist];
-        }
+			
+			if ([[playlist delegate] respondsToSelector:@selector(itemsInPlaylistDidUpdateMetadata:)]) {
+				[playlist.delegate itemsInPlaylistDidUpdateMetadata:playlist];
+			}
+		});
     }
-    
 }
 
 // Called when create time and/or creator for a playlist entry changes
 static void	track_created_changed(sp_playlist *pl, int position, sp_user *user, int when, void *userdata) {
     
-	SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
-	SPPlaylistItem *item = [playlist.items objectAtIndex:position];
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
 	
-	[item setDateCreatedFromLibSpotify:[NSDate dateWithTimeIntervalSince1970:when]];
-	[item setCreatorFromLibSpotify:[SPUser userWithUserStruct:user inSession:playlist.session]];
+	SPUser *spUser = [SPUser userWithUserStruct:user inSession:playlist.session];
+	
+	dispatch_async(dispatch_get_main_queue(), ^{
+		SPPlaylistItem *item = [playlist.items objectAtIndex:position];
+		
+		[item setDateCreatedFromLibSpotify:[NSDate dateWithTimeIntervalSince1970:when]];
+		[item setCreatorFromLibSpotify:spUser];
+	});
 }
 
 // Called when seen attribute for a playlist entry changes
 static void	track_seen_changed(sp_playlist *pl, int position, bool seen, void *userdata) {
     
-	SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
-	SPPlaylistItem *item = [playlist.items objectAtIndex:position];
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
 	
-	[item setUnreadFromLibSpotify:!seen];
+	dispatch_async(dispatch_get_main_queue(), ^{
+		SPPlaylistItem *item = [playlist.items objectAtIndex:position];
+		[item setUnreadFromLibSpotify:!seen];
+	});
 }
 
 // Called when playlist description has changed
 static void	description_changed(sp_playlist *pl, const char *desc, void *userdata) {
-    SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
-    [playlist setPlaylistDescriptionFromLibSpotifyUpdate:[NSString stringWithUTF8String:desc]];
+   
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
+	
+	NSString *newDesc = [NSString stringWithUTF8String:desc];
+	
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[playlist setPlaylistDescriptionFromLibSpotifyUpdate:newDesc];
+	});
 }
 
 static void	image_changed(sp_playlist *pl, const byte *image, void *userdata) {
-    SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
-    [playlist setImage:[SPImage imageWithImageId:image inSession:[playlist session]]];
+    
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
+	
+	SPImage *spImage = [SPImage imageWithImageId:image inSession:playlist.session];
+	
+	dispatch_async(dispatch_get_main_queue(), ^{ playlist.image = spImage; });
 }
 
 // Called when message attribute for a playlist entry changes
 static void	track_message_changed(sp_playlist *pl, int position, const char *message, void *userdata) {
 
-	SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
-	SPPlaylistItem *item = [playlist.items objectAtIndex:position];
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
 	
-	if (message != NULL)
-		[item setMessageFromLibSpotify:[NSString stringWithUTF8String:message]];
-	else
-		[item setMessageFromLibSpotify:nil];
+	NSString *newMessage = message == NULL ? nil : [NSString stringWithUTF8String:message];
+	
+	dispatch_async(dispatch_get_main_queue(), ^{ 
+		SPPlaylistItem *item = [playlist.items objectAtIndex:position];
+		[item setMessageFromLibSpotify:newMessage];
+	});
 }
 
 // Called when playlist subscribers changes (count or list of names)
 static void	subscribers_changed(sp_playlist *pl, void *userdata) {
-    SPPlaylist *playlist = (__bridge SPPlaylist *)userdata;
+    
+	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
+	SPPlaylist *playlist = proxy.playlist;
+	if (!playlist) return;
+	
 	[playlist rebuildSubscribers];
 }
 
@@ -287,7 +395,6 @@ static sp_playlist_callbacks _playlistCallbacks = {
     &subscribers_changed
 };
 
-
 #pragma mark -
 
 static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
@@ -296,8 +403,15 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 
 -(void)offlineSyncStatusMayHaveChanged {
 	
-	self.offlineStatus = sp_playlist_get_offline_status(self.session.session, self.playlist);
-	self.offlineDownloadProgress = sp_playlist_get_offline_download_completed(self.session.session, self.playlist) / 100.0;
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+	
+	sp_playlist_offline_status newStatus = sp_playlist_get_offline_status(self.session.session, self.playlist);
+	float newProgress = sp_playlist_get_offline_download_completed(self.session.session, self.playlist) / 100.0;
+	
+	dispatch_async(dispatch_get_main_queue(), ^{
+		self.offlineStatus = newStatus;
+		self.offlineDownloadProgress = newProgress;
+	});
 }
 
 @end
@@ -308,16 +422,17 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 	return [aSession playlistForPlaylistStruct:pl];
 }
 
-+(SPPlaylist *)playlistWithPlaylistURL:(NSURL *)playlistURL inSession:(SPSession *)aSession {
-	return [aSession playlistForURL:playlistURL];
++(void)playlistWithPlaylistURL:(NSURL *)playlistURL inSession:(SPSession *)aSession callback:(void (^)(SPPlaylist *playlist))block {
+	[aSession playlistForURL:playlistURL callback:block];
 }
 
 -(id)initWithPlaylistStruct:(sp_playlist *)pl inSession:(SPSession *)aSession {
     
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+	
     if ((self = [super init])) {
         self.session = aSession;
         self.playlist = pl;
-		self.itemWrapper = [[NSMutableArray alloc] init];
 
 		// Add Observers
         
@@ -335,17 +450,18 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
                forKeyPath:@"collaborative"
                   options:0
                   context:(__bridge void *)kSPPlaylistKVOContext];
-        
-        [self addObserver:self
-               forKeyPath:@"loaded"
-                  options:NSKeyValueObservingOptionOld
-                  context:(__bridge void *)kSPPlaylistKVOContext];
 		
 		if (self.playlist != NULL) {
-			sp_playlist_add_ref(pl);
-			sp_playlist_add_callbacks(self.playlist, &_playlistCallbacks, (__bridge void *)self);
-			sp_playlist_set_in_ram(aSession.session, self.playlist, true);
-			self.loaded = sp_playlist_is_loaded(pl);
+			sp_playlist_add_ref(self.playlist);
+			
+			self.moveCallbackStack = [NSMutableArray new];
+			self.addCallbackStack = [NSMutableArray new];
+			self.removeCallbackStack = [NSMutableArray new];
+		
+			if (aSession.loadingPolicy == SPAsyncLoadingImmediate)
+				dispatch_async(dispatch_get_main_queue(), ^() { 
+					[self startLoading];
+				});
 		}
         
     }
@@ -353,10 +469,17 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 }
 
 -(NSString *)description {
-    return [NSString stringWithFormat:@"%@: %@ (%d items)", [super description], [self name], [[self valueForKey:@"items"] count]];
+    return [NSString stringWithFormat:@"%@: %@ (%@ items)", [super description], [self name], [NSNumber numberWithUnsignedInteger:[[self valueForKey:@"items"] count]]];
 }
 
-@synthesize playlist;
+-(sp_playlist *)playlist {
+#if DEBUG
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+#endif
+	return _playlist;
+}
+
+@synthesize playlist = _playlist;
 @synthesize updating;
 @synthesize playlistDescription;
 @synthesize delegate;
@@ -368,14 +491,17 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 @synthesize image;
 @synthesize session;
 @synthesize owner;
-@synthesize itemWrapper;
 @synthesize subscribers;
-
-@dynamic items;
-@synthesize trackChangesAreFromLibSpotifyCallback;
+@synthesize callbackProxy;
+@synthesize items;
+@synthesize moveCallbackStack;
+@synthesize addCallbackStack;
+@synthesize removeCallbackStack;
 
 -(void)setMarkedForOfflinePlayback:(BOOL)isMarkedForOfflinePlayback {
-	sp_playlist_set_offline_mode(self.session.session, self.playlist, isMarkedForOfflinePlayback);
+	dispatch_async([SPSession libSpotifyQueue], ^{
+		sp_playlist_set_offline_mode(self.session.session, self.playlist, isMarkedForOfflinePlayback);
+	});
 }
 
 -(BOOL)isMarkedForOfflinePlayback {
@@ -390,56 +516,103 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 
 -(void)loadPlaylistData {
 	
-	if (playlist == NULL)
-		return;
-    
-	sp_link *link = sp_link_create_from_playlist(playlist);
-	if (link != NULL) {
-		[self setSpotifyURL:[NSURL urlWithSpotifyLink:link]];
-		sp_link_release(link);
-	}
+	dispatch_async([SPSession libSpotifyQueue], ^() {
 
-    const char *nameBuf = sp_playlist_name(playlist);
-    
-    if (nameBuf != NULL) {
-        [self setPlaylistNameFromLibSpotifyUpdate:[NSString stringWithUTF8String:nameBuf]];
-    }
-    
-    const char *desc = sp_playlist_get_description(playlist);
-    
-    if (desc != NULL) {
-        [self setPlaylistDescriptionFromLibSpotifyUpdate:[NSString stringWithUTF8String:desc]];
-    }
-    
-    byte imageId[20];
-    if (sp_playlist_get_image(playlist, imageId)) {
-        [self setImage:[SPImage imageWithImageId:imageId
-                                              inSession:session]];
-    }
-    
-    [self setOwner:[SPUser userWithUserStruct:sp_playlist_owner(playlist) inSession:session]];
-    [self setCollaborativeFromLibSpotifyUpdate:sp_playlist_is_collaborative(playlist)];
-    [self setHasPendingChanges:sp_playlist_has_pending_changes(playlist)];
-	[self offlineSyncStatusMayHaveChanged];
-    
-	[self rebuildItems];
-	sp_playlist_update_subscribers(self.session.session, self.playlist);
+		if (self.playlist == NULL)
+			return;
+		
+		BOOL isLoaded = sp_playlist_is_loaded(self.playlist);
+		
+		if (!isLoaded)
+			return;
+		
+		NSURL *newURL = nil;
+		NSString *newName = nil;
+		NSString *newDesc = nil;
+		SPImage *newImage = nil;
+		SPUser *newOwner = nil;
+		BOOL newCollaborative = NO;
+		BOOL newHasPendingChanges = NO;
+		
+		sp_link *link = sp_link_create_from_playlist(self.playlist);
+		if (link != NULL) {
+			newURL = [NSURL urlWithSpotifyLink:link];
+			sp_link_release(link);
+		}
+		
+		const char *nameBuf = sp_playlist_name(self.playlist);
+		if (nameBuf != NULL)
+			newName = [NSString stringWithUTF8String:nameBuf];
+		
+		const char *desc = sp_playlist_get_description(self.playlist);
+		if (desc != NULL)
+			newDesc = [NSString stringWithUTF8String:desc];
+		
+		byte imageId[20];
+		if (sp_playlist_get_image(self.playlist, imageId)) {
+			newImage = [SPImage imageWithImageId:imageId inSession:self.session];
+		}
+		
+		newOwner = [SPUser userWithUserStruct:sp_playlist_owner(self.playlist) inSession:self.session];
+		newCollaborative = sp_playlist_is_collaborative(self.playlist);
+		newHasPendingChanges = sp_playlist_has_pending_changes(self.playlist);
+		NSArray *newItems = [self playlistSnapshot];
+		
+		dispatch_async(dispatch_get_main_queue(), ^() {
+			self.spotifyURL = newURL;
+			self.image = newImage;
+			self.owner = newOwner;
+			self.items = newItems;
+			self.hasPendingChanges = newHasPendingChanges;
+			[self setPlaylistNameFromLibSpotifyUpdate:newName];
+			[self setPlaylistDescriptionFromLibSpotifyUpdate:newDesc];
+			[self setCollaborativeFromLibSpotifyUpdate:newCollaborative];
+			self.loaded = isLoaded;
+		});
+		
+		[self offlineSyncStatusMayHaveChanged];
+		sp_playlist_update_subscribers(self.session.session, self.playlist);
+		
+	});
 }
 
+-(void)startLoading {
+	
+	dispatch_async([SPSession libSpotifyQueue], ^() {
+		
+		if (self.callbackProxy != nil) return;
+	
+		// We should build a (probably incomplete right now) list of 
+		// tracks to the delta callbacks can safely be applied.
+		NSArray *newItems = [self playlistSnapshot];
+		
+		dispatch_async(dispatch_get_main_queue(), ^{
+			self.items = newItems;
+			dispatch_async([SPSession libSpotifyQueue], ^() {
+				self.callbackProxy = [[SPPlaylistCallbackProxy alloc] init];
+				self.callbackProxy.playlist = self;
+				sp_playlist_add_callbacks(self.playlist, &_playlistCallbacks, (__bridge void *)self.callbackProxy);
+				sp_playlist_set_in_ram(self.session.session, self.playlist, true);
+				
+				BOOL isLoaded = sp_playlist_is_loaded(self.playlist);
+
+				dispatch_async(dispatch_get_main_queue(), ^() {
+					if (isLoaded)
+						[self loadPlaylistData];
+				});
+			});
+		});
+	});
+}
+				   
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     
     if (context == (__bridge void *)kSPPlaylistKVOContext) {
         if ([keyPath isEqualToString:@"name"]) {
-            sp_playlist_rename(playlist, [[self name] UTF8String]);
+            dispatch_async([SPSession libSpotifyQueue], ^() { sp_playlist_rename(self.playlist, [self.name UTF8String]); });
             return;
         } else if ([keyPath isEqualToString:@"collaborative"]) {
-            sp_playlist_set_collaborative(playlist, [self isCollaborative]);
-            return;
-        } else if ([keyPath isEqualToString:@"loaded"]) {
-            
-			if (self.isLoaded) {
-                [self loadPlaylistData];
-            }
+            dispatch_async([SPSession libSpotifyQueue], ^() { sp_playlist_set_collaborative(self.playlist, self.isCollaborative); });
             return;
         }
     } 
@@ -483,7 +656,10 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 
 -(void)rebuildSubscribers {
 	
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+	
 	NSUInteger subscriberCount = sp_playlist_num_subscribers(self.playlist);
+	NSArray *newSubscribers = nil;
 	
 	if (subscriberCount > 0) {
 	
@@ -501,137 +677,121 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 			}
 		}
 		
-		self.subscribers = [NSArray arrayWithArray:newSubscribers];
+		newSubscribers = [NSArray arrayWithArray:newSubscribers];
 		sp_playlist_subscribers_free(subs);
 		
-	} else if (self.subscribers != nil) {
-		self.subscribers = nil;
-	}	
-}
-
--(void)rebuildItems {
+	}
 	
-    NSUInteger itemCount = sp_playlist_num_tracks(playlist);
-    NSMutableArray *newItems = [NSMutableArray arrayWithCapacity:itemCount];
-    
-    NSUInteger currentItemIndex = 0;
-    for (currentItemIndex = 0; currentItemIndex < itemCount; currentItemIndex++) {
-        
-        sp_track *trackStruct = sp_playlist_track(playlist, (int)currentItemIndex);
-        
-        if (trackStruct != NULL) {
-			[newItems addObject:[[SPPlaylistItem alloc] initWithPlaceholderTrack:trackStruct
-																		  atIndex:(int)currentItemIndex
-																	   inPlaylist:self]];
-        }
-    }
-	
-	NSMutableArray *itemContainer = self.items;
-	if ([newItems isEqualToArray:itemContainer])
-		return;
-	
-	self.trackChangesAreFromLibSpotifyCallback = YES;
-	
-	[self willChangeValueForKey:@"items"];
-	itemWrapper = [newItems mutableCopy];
-	[self didChangeValueForKey:@"items"];
-	
-	self.trackChangesAreFromLibSpotifyCallback = NO;
+	dispatch_async(dispatch_get_main_queue(), ^{
+		if (![self.subscribers isEqualToArray:newSubscribers])
+			self.subscribers = newSubscribers;
+	});
 }
 
 -(void)resetItemIndexes {
-	NSUInteger itemCount = [itemWrapper count];
+	NSUInteger itemCount = [self.items count];
 	for (NSUInteger currentItemIndex = 0; currentItemIndex < itemCount; currentItemIndex++)
-		[(SPPlaylistItem *)[itemWrapper objectAtIndex:currentItemIndex] setItemIndexFromLibSpotify:(int)currentItemIndex];
+		[(SPPlaylistItem *)[self.items objectAtIndex:currentItemIndex] setItemIndexFromLibSpotify:(int)currentItemIndex];
 }
 
--(BOOL)moveItemsAtIndexes:(NSIndexSet *)indexes toIndex:(NSUInteger)newLocation error:(NSError **)error {
+-(NSArray *)playlistSnapshot {
 	
-	int count = (int)[indexes count];
-	int indexArray[count];
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
 	
-	NSUInteger index = [indexes firstIndex];
-	for (NSUInteger i = 0; i < [indexes count]; i++) {
-		indexArray[i] = (int)index;
-		index = [indexes indexGreaterThanIndex:index];
-	}
+	int itemCount = sp_playlist_num_tracks(self.playlist);
+	NSMutableArray *newitems = [NSMutableArray arrayWithCapacity:itemCount];
 	
-	const int *indexArrayPtr = (const int *)&indexArray;
-	sp_error errorCode = sp_playlist_reorder_tracks(playlist, indexArrayPtr, count, (int)newLocation);
-	
-	if (errorCode != SP_ERROR_OK && error != nil) {
-		*error = [NSError spotifyErrorWithCode:errorCode];
-	}
-	
-	return errorCode == SP_ERROR_OK;
-}
-
-#pragma mark -
-
-- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel {
-	if (sel == @selector(items)) {
-		return [super methodSignatureForSelector:@selector(mutableArrayValueForKey:)];
-	} else {
-		return [super methodSignatureForSelector:sel];
-	}
-}
-
-- (void)forwardInvocation:(NSInvocation *)invocation {
-	
-	if ([invocation selector] == @selector(items)) {
-		__unsafe_unretained id value = [self mutableArrayValueForKey:@"items"];
-		[invocation setReturnValue:&value];
-	}
-}
-
-#pragma mark -
-#pragma mark Mutable Array KVC
-
--(NSInteger)countOfItems {
-	return [itemWrapper count];
-}
-
--(SPPlaylistItem *)objectInItemsAtIndex:(NSInteger)anIndex {
-	return [itemWrapper objectAtIndex:anIndex];
-}
-
--(void)insertObject:(id)anItem inItemsAtIndex:(NSInteger)anIndex {
-	if (anItem != nil) {
-		if (self.trackChangesAreFromLibSpotifyCallback) {
-			[itemWrapper insertObject:anItem atIndex:anIndex];
-			[self resetItemIndexes];
-			
-		} else if (([anItem isKindOfClass:[SPTrack class]]) || ([anItem isKindOfClass:[SPPlaylistItem class]] && ((SPPlaylistItem *)anItem).itemClass == [SPTrack class])) {
-			
-			sp_track *track;
-			
-			if ([anItem isKindOfClass:[SPTrack class]])
-				track = [anItem track];
-			else
-				track = [(SPTrack *)((SPPlaylistItem *)anItem).item track];
-			
-			sp_track *const *trackPointer = &track;
-			sp_playlist_add_tracks(playlist, trackPointer, 1, (int)anIndex, [session session]);
+	for (NSUInteger currentItem = 0; currentItem < itemCount; currentItem++) {
+		sp_track *thisTrack = sp_playlist_track(self.playlist, currentItem);
+		if (thisTrack != NULL) {
+			[newitems addObject:[[SPPlaylistItem alloc] initWithPlaceholderTrack:thisTrack
+																	  atIndex:currentItem
+																   inPlaylist:self]];
 		}
 	}
+	
+	return [NSArray arrayWithArray:newitems];
 }
 
--(void)removeObjectFromItemsAtIndex:(NSInteger)anIndex {
-	if (self.trackChangesAreFromLibSpotifyCallback) {
-		[itemWrapper removeObjectAtIndex:anIndex];
-		[self resetItemIndexes];
-	} else {
-		int intIndex = (int)anIndex; 
+-(void)addItem:(SPTrack *)anItem atIndex:(NSUInteger)index callback:(SPErrorableOperationCallback)block {
+	[self addItems:[NSArray arrayWithObject:anItem] atIndex:index callback:block];
+}
+
+-(void)addItems:(NSArray *)newItems atIndex:(NSUInteger)index callback:(SPErrorableOperationCallback)block {
+	
+	dispatch_async([SPSession libSpotifyQueue], ^{
+		
+		if (newItems.count == 0) {
+			dispatch_async(dispatch_get_main_queue(), ^{
+				if (block) block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
+			});
+			return;
+		}
+		
+		sp_track **tracks = malloc(sizeof(sp_track *) * newItems.count);
+		
+		// libSpotify iterates through the array and inserts each track at the given index, 
+		// which ends up reversing the expected order. Defeat this by constructing a backwards
+		// array.
+		for (int currentTrack = newItems.count - 1; currentTrack >= 0; currentTrack--) {
+			
+			sp_track *track;
+			id item = [newItems objectAtIndex:currentTrack];
+			
+			if ([item isKindOfClass:[SPTrack class]])
+				track = [item track];
+			else
+				track = [(SPTrack *)((SPPlaylistItem *)item).item track];
+			
+			tracks[currentTrack] = track;
+		}
+		sp_track *const *trackPointer = tracks;
+		
+		if (block)
+			[self.addCallbackStack addObject:block];
+		
+		sp_error errorCode = sp_playlist_add_tracks(self.playlist, trackPointer, newItems.count, (int)index, self.session.session);
+		free(tracks);
+		tracks = NULL;
+		
+		NSError *error = nil;
+		if (errorCode != SP_ERROR_OK)
+			error = [NSError spotifyErrorWithCode:errorCode];
+		
+		if (error && block) {
+			[self.addCallbackStack removeObject:block];
+			dispatch_async(dispatch_get_main_queue(), ^{ block(error); });
+		}
+	});
+}
+
+-(void)removeItemAtIndex:(NSUInteger)index callback:(SPErrorableOperationCallback)block {
+
+	dispatch_async([SPSession libSpotifyQueue], ^{
+		
+		if (block)
+			[self.removeCallbackStack addObject:block];
+		
+		int intIndex = (int)index; 
 		const int *indexPtr = &intIndex;
-		sp_playlist_remove_tracks(playlist, indexPtr, 1);
-	}
+		sp_error errorCode = sp_playlist_remove_tracks(self.playlist, indexPtr, 1);
+		
+		NSError *error = nil;
+		if (errorCode != SP_ERROR_OK)
+			error = [NSError spotifyErrorWithCode:errorCode];
+		
+		if (error && block) {
+			[self.removeCallbackStack removeObject:block];
+			dispatch_async(dispatch_get_main_queue(), ^{ block(error); });
+		}
+	});
+
 }
 
--(void)removeItemsAtIndexes:(NSIndexSet *)indexes {
-	if (self.trackChangesAreFromLibSpotifyCallback) {
-		[itemWrapper removeObjectsAtIndexes:indexes];
-		[self resetItemIndexes];
-	} else {
+-(void)moveItemsAtIndexes:(NSIndexSet *)indexes toIndex:(NSUInteger)newLocation callback:(SPErrorableOperationCallback)block {
+	
+	dispatch_async([SPSession libSpotifyQueue], ^{
+		
 		int count = (int)[indexes count];
 		int indexArray[count];
 		
@@ -641,9 +801,21 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 			index = [indexes indexGreaterThanIndex:index];
 		}
 		
+		if (block)
+			[self.moveCallbackStack addObject:block];
+		
 		const int *indexArrayPtr = (const int *)&indexArray;
-		sp_playlist_remove_tracks(playlist, indexArrayPtr, count);
-	}
+		sp_error errorCode = sp_playlist_reorder_tracks(self.playlist, indexArrayPtr, count, (int)newLocation);
+		
+		NSError *error = nil;
+		if (errorCode != SP_ERROR_OK)
+			error = [NSError spotifyErrorWithCode:errorCode];
+		
+		if (error && block) {
+			[self.moveCallbackStack removeObject:block];
+			dispatch_async(dispatch_get_main_queue(), ^{ block(error); });
+		}
+	});
 }
 
 -(void)dealloc {
@@ -651,18 +823,23 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
     [self removeObserver:self forKeyPath:@"name"];
     [self removeObserver:self forKeyPath:@"playlistDescription"];
     [self removeObserver:self forKeyPath:@"collaborative"];
-    [self removeObserver:self forKeyPath:@"loaded"];
     
+    self.delegate = nil;
+    self.session = nil;
 	
-    [self setDelegate:nil];
+	sp_playlist *outgoing_playlist = _playlist;
+	
+	self.callbackProxy.playlist = nil;
+	
+	SPPlaylistCallbackProxy *outgoingProxy = self.callbackProxy;
+	self.callbackProxy = nil;
     
-    session = nil;
-    
-	if (playlist != NULL) {
-		sp_playlist_remove_callbacks(playlist, &_playlistCallbacks, (__bridge void *)self);
-		sp_playlist_release(playlist);
-    }
-		
+	dispatch_async([SPSession libSpotifyQueue], ^() {
+		if (outgoing_playlist != NULL) {
+			sp_playlist_remove_callbacks(outgoing_playlist, &_playlistCallbacks, (__bridge void *)outgoingProxy);
+			sp_playlist_release(outgoing_playlist);
+		}
+	});
 }
 
 

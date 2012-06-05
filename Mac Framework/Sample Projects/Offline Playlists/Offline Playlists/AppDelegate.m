@@ -47,6 +47,7 @@
 	[self willChangeValueForKey:@"session"];
 	[SPSession initializeSharedSessionWithApplicationKey:[NSData dataWithBytes:&g_appkey length:g_appkey_size] 
 											   userAgent:@"com.spotify.OfflinePlaylists"
+										   loadingPolicy:SPAsyncLoadingImmediate
 												   error:nil];
 	[self didChangeValueForKey:@"session"];
 	[self.window center];
@@ -76,7 +77,9 @@
 		[SPSession sharedSession].connectionState == SP_CONNECTION_STATE_UNDEFINED) 
 		return NSTerminateNow;
 	
-	[[SPSession sharedSession] logout];
+	[[SPSession sharedSession] logout:^{
+		[[NSApplication sharedApplication] replyToApplicationShouldTerminate:YES];
+	}];
 	return NSTerminateLater;
 }
 
@@ -153,11 +156,7 @@
             contextInfo:nil];
 }
 
--(void)sessionDidLogOut:(SPSession *)aSession; {
-	[[NSApplication sharedApplication] replyToApplicationShouldTerminate:YES];
-}
-
-
+-(void)sessionDidLogOut:(SPSession *)aSession; {}
 -(void)session:(SPSession *)aSession didEncounterNetworkError:(NSError *)error; {}
 -(void)session:(SPSession *)aSession didLogMessage:(NSString *)aMessage; {}
 -(void)sessionDidChangeMetadata:(SPSession *)aSession; {}
@@ -197,11 +196,9 @@
 			return;
 		}
 		
-		NSError *error = nil;
-		
-		if (![self.playbackManager playTrack:track error:&error]) {
-			[self.window presentError:error];
-		}
+		[self.playbackManager playTrack:track callback:^(NSError *error) {
+			if (error) [self.window presentError:error];
+		}];
 		return;
 	}
 }

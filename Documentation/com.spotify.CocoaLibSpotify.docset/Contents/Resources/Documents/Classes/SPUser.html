@@ -55,7 +55,7 @@
 	
 	<option value="class_methods">Class Methods</option>
 	
-	<option value="//api/name/userWithURL:inSession:">&nbsp;&nbsp;&nbsp;&nbsp;+ userWithURL:inSession:</option>
+	<option value="//api/name/userWithURL:inSession:callback:">&nbsp;&nbsp;&nbsp;&nbsp;+ userWithURL:inSession:callback:</option>
 	
 	<option value="//api/name/userWithUserStruct:inSession:">&nbsp;&nbsp;&nbsp;&nbsp;+ userWithUserStruct:inSession:</option>
 	
@@ -110,7 +110,7 @@
 
 <li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#class_methods">Class Methods</a></span><ul>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/userWithURL:inSession:">userWithURL:inSession:</a></span></li>
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/userWithURL:inSession:callback:">userWithURL:inSession:callback:</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/userWithUserStruct:inSession:">userWithUserStruct:inSession:</a></span></li>
 	
@@ -147,6 +147,9 @@
 						<tr>
 	<td class="specification-title">Inherits from</td>
 	<td class="specification-value">NSObject</td>
+</tr><tr>
+	<td class="specification-title">Conforms to</td>
+	<td class="specification-value"><a href="../Protocols/SPAsyncLoading.html">SPAsyncLoading</a></td>
 </tr><tr>
 	<td class="specification-title">Declared in</td>
 	<td class="specification-value">SPUser.h<br />SPUser.m</td>
@@ -186,7 +189,7 @@
 	
 </li><li>
 	<span class="tooltip">
-		<code><a href="#//api/name/userWithURL:inSession:">+&nbsp;userWithURL:inSession:</a></code>
+		<code><a href="#//api/name/userWithURL:inSession:callback:">+&nbsp;userWithURL:inSession:callback:</a></code>
 		<span class="tooltip"><p>Creates an SPUser from the given Spotify <a href="#//api/name/user">user</a> URL.</p></span>
 	</span>
 	
@@ -412,7 +415,8 @@
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> This should only be used if you plan to directly use the
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div><div class="warning"><p><strong>Warning:</strong> This should only be used if you plan to directly use the
 C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
 API directly on items that have CocoaLibSpotify objects associated with them.</p></div>
 	</div>
@@ -440,8 +444,8 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 						<h2 class="subtitle subtitle-methods">Class Methods</h2>
 						
 						<div class="section-method">
-	<a name="//api/name/userWithURL:inSession:" title="userWithURL:inSession:"></a>
-	<h3 class="subsubtitle method-title">userWithURL:inSession:</h3>
+	<a name="//api/name/userWithURL:inSession:callback:" title="userWithURL:inSession:callback:"></a>
+	<h3 class="subsubtitle method-title">userWithURL:inSession:callback:</h3>
 	
 	
 	
@@ -450,7 +454,7 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>+ (SPUser *)userWithURL:(NSURL *)<em>userUrl</em> inSession:(SPSession *)<em>aSession</em></code></div>
+	<div class="method-subsection method-declaration"><code>+ (void)userWithURL:(NSURL *)<em>userUrl</em> inSession:(SPSession *)<em>aSession</em> callback:(void ( ^ ) ( SPUser *user ))<em>block</em></code></div>
 	
 	
 	<div class="method-subsection arguments-section parameters">
@@ -466,14 +470,14 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 			<dd><p>The <a href="../Classes/SPSession.html">SPSession</a> the <a href="#//api/name/user">user</a> should exist in.</p></dd>
 		</dl>
 		
+		<dl class="argument-def parameter-def">
+			<dt><em>block</em></dt>
+			<dd><p>The block to be called with the created SPUser object, or <code>nil</code> if given an invalid <a href="#//api/name/user">user</a> URL.</p></dd>
+		</dl>
+		
 	</div>
 	
 	
-	
-	<div class="method-subsection return">
-		<h4 class="method-subtitle parameter-title">Return Value</h4>
-		<p>Returns the created SPUser object, or <code>nil</code> if given an invalid <a href="#//api/name/user">user</a> URL.</p>
-	</div>
 	
 	
 	
@@ -482,7 +486,7 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This convenience method creates an SPUser object if one doesn&rsquo;t exist, or
-returns a cached SPUser if one already exists for the given URL.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you pass in an invalid <a href="#//api/name/user">user</a> URL (i.e., any URL not
+returns a cached SPUser if one already exists for the given URL.</p><div class="warning"><p><strong>Warning:</strong> If you pass in an invalid <a href="#//api/name/user">user</a> URL (i.e., any URL not
 starting <code>spotify:user:</code>, this method will return <code>nil</code>.</p></div>
 	</div>
 	
@@ -610,9 +614,10 @@ returns a cached SPUser if one already exists for the given struct.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> For better performance and built-in caching, it is recommended
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div><div class="warning"><p><strong>Warning:</strong> For better performance and built-in caching, it is recommended
 you create SPUser objects using <a href="#//api/name/userWithUserStruct:inSession:">[SPUser userWithUserStruct:inSession:]</a>,
-<a href="#//api/name/userWithURL:inSession:">[SPUser userWithURL:inSession:]</a> or the instance methods on <a href="../Classes/SPSession.html">SPSession</a>.</p></div>
+<a href="#//api/name/userWithURL:inSession:callback:">[SPUser userWithURL:inSession:callback:]</a> or the instance methods on <a href="../Classes/SPSession.html">SPSession</a>.</p></div>
 	</div>
 	
 	
@@ -642,7 +647,7 @@ you create SPUser objects using <a href="#//api/name/userWithUserStruct:inSessio
 				<div id="footer">
 					<hr />
 					<div class="footer-copyright">
-						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-04-02)</span><br />
+						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-05-23)</span><br />
 						
 						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.0.5 (build 789)</a>.</span></p>
 						

@@ -42,6 +42,8 @@
 	
 	<option value="//api/name/container">&nbsp;&nbsp;&nbsp;&nbsp;container</option>
 	
+	<option value="//api/name/loaded">&nbsp;&nbsp;&nbsp;&nbsp;loaded</option>
+	
 	<option value="//api/name/owner">&nbsp;&nbsp;&nbsp;&nbsp;owner</option>
 	
 	<option value="//api/name/playlists">&nbsp;&nbsp;&nbsp;&nbsp;playlists</option>
@@ -55,11 +57,17 @@
 	
 	<option value="instance_methods">Instance Methods</option>
 	
-	<option value="//api/name/createFolderWithName:error:">&nbsp;&nbsp;&nbsp;&nbsp;- createFolderWithName:error:</option>
+	<option value="//api/name/createFolderWithName:callback:">&nbsp;&nbsp;&nbsp;&nbsp;- createFolderWithName:callback:</option>
 	
-	<option value="//api/name/createPlaylistWithName:">&nbsp;&nbsp;&nbsp;&nbsp;- createPlaylistWithName:</option>
+	<option value="//api/name/createPlaylistWithName:callback:">&nbsp;&nbsp;&nbsp;&nbsp;- createPlaylistWithName:callback:</option>
 	
-	<option value="//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:">&nbsp;&nbsp;&nbsp;&nbsp;- movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:</option>
+	<option value="//api/name/flattenedPlaylists">&nbsp;&nbsp;&nbsp;&nbsp;- flattenedPlaylists</option>
+	
+	<option value="//api/name/moveItem:toIndex:ofNewParent:callback:">&nbsp;&nbsp;&nbsp;&nbsp;- moveItem:toIndex:ofNewParent:callback:</option>
+	
+	<option value="//api/name/removeItem:callback:">&nbsp;&nbsp;&nbsp;&nbsp;- removeItem:callback:</option>
+	
+	<option value="//api/name/startLoading">&nbsp;&nbsp;&nbsp;&nbsp;- startLoading</option>
 	
 	
 	
@@ -91,6 +99,8 @@
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/container">container</a></span></li>
 	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/loaded">loaded</a></span></li>
+	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/owner">owner</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/playlists">playlists</a></span></li>
@@ -105,11 +115,17 @@
 
 <li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#instance_methods">Instance Methods</a></span><ul>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/createFolderWithName:error:">createFolderWithName:error:</a></span></li>
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/createFolderWithName:callback:">createFolderWithName:callback:</a></span></li>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/createPlaylistWithName:">createPlaylistWithName:</a></span></li>
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/createPlaylistWithName:callback:">createPlaylistWithName:callback:</a></span></li>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:">movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:</a></span></li>
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/flattenedPlaylists">flattenedPlaylists</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/moveItem:toIndex:ofNewParent:callback:">moveItem:toIndex:ofNewParent:callback:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/removeItem:callback:">removeItem:callback:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/startLoading">startLoading</a></span></li>
 	
 </ul></li>
 
@@ -136,6 +152,9 @@
 						<tr>
 	<td class="specification-title">Inherits from</td>
 	<td class="specification-value">NSObject</td>
+</tr><tr>
+	<td class="specification-title">Conforms to</td>
+	<td class="specification-value"><a href="../Protocols/SPAsyncLoading.html">SPAsyncLoading</a><br /><a href="../Protocols/SPDelayableAsyncLoading.html">SPDelayableAsyncLoading</a></td>
 </tr><tr>
 	<td class="specification-title">Declared in</td>
 	<td class="specification-value">SPPlaylistContainer.h<br />SPPlaylistContainer.m</td>
@@ -174,6 +193,13 @@ list and can&rsquo;t be created manually.</p>
 	
 </li><li>
 	<span class="tooltip">
+		<code><a href="#//api/name/loaded">&nbsp;&nbsp;loaded</a></code>
+		<span class="tooltip"><p>Returns <code>YES</code> if the reciever has loaded its metadata, otherwise <code>NO</code>. Must be KVO-compliant.</p></span>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
 		<code><a href="#//api/name/owner">&nbsp;&nbsp;owner</a></code>
 		<span class="tooltip"><p>Returns the owner of the playlist list.</p></span>
 	</span>
@@ -182,14 +208,21 @@ list and can&rsquo;t be created manually.</p>
 </li><li>
 	<span class="tooltip">
 		<code><a href="#//api/name/playlists">&nbsp;&nbsp;playlists</a></code>
-		<span class="tooltip"><p>Returns an array of <a href="../Classes/SPPlaylist.html">SPPlaylist</a> and/or SPPlaylistFolders representing the owner&rsquo;s playlists.</p></span>
+		<span class="tooltip"><p>Returns an array of <a href="../Classes/SPPlaylist.html">SPPlaylist</a> and/or SPPlaylistFolders representing the owner&rsquo;s playlist list.</p></span>
 	</span>
 	<span class="task-item-suffix">property</span>
 	
 </li><li>
 	<span class="tooltip">
+		<code><a href="#//api/name/flattenedPlaylists">&ndash;&nbsp;flattenedPlaylists</a></code>
+		<span class="tooltip"><p>Returns a flattened array of the <a href="../Classes/SPPlaylist.html"><code>SPPlaylist</code></a> objects in the <a href="#//api/name/playlists">playlists</a> tree, without folders.</p></span>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
 		<code><a href="#//api/name/session">&nbsp;&nbsp;session</a></code>
-		<span class="tooltip"><p>Returns the session the list is loaded in.</p></span>
+		<span class="tooltip"><p>Returns the session the list is <a href="#//api/name/loaded">loaded</a> in.</p></span>
 	</span>
 	<span class="task-item-suffix">property</span>
 	
@@ -203,22 +236,44 @@ list and can&rsquo;t be created manually.</p>
 						<ul class="task-list">
 							<li>
 	<span class="tooltip">
-		<code><a href="#//api/name/createFolderWithName:error:">&ndash;&nbsp;createFolderWithName:error:</a></code>
+		<code><a href="#//api/name/createFolderWithName:callback:">&ndash;&nbsp;createFolderWithName:callback:</a></code>
 		<span class="tooltip"><p>Create a new, empty folder.</p></span>
 	</span>
 	
 	
 </li><li>
 	<span class="tooltip">
-		<code><a href="#//api/name/createPlaylistWithName:">&ndash;&nbsp;createPlaylistWithName:</a></code>
+		<code><a href="#//api/name/createPlaylistWithName:callback:">&ndash;&nbsp;createPlaylistWithName:callback:</a></code>
 		<span class="tooltip"><p>Create a new, empty playlist.</p></span>
 	</span>
 	
 	
 </li><li>
 	<span class="tooltip">
-		<code><a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:">&ndash;&nbsp;movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:</a></code>
+		<code><a href="#//api/name/removeItem:callback:">&ndash;&nbsp;removeItem:callback:</a></code>
+		<span class="tooltip"><p>Remove the given playlist or folder.</p></span>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/moveItem:toIndex:ofNewParent:callback:">&ndash;&nbsp;moveItem:toIndex:ofNewParent:callback:</a></code>
 		<span class="tooltip"><p>Move a playlist or folder to another location in the list.</p></span>
+	</span>
+	
+	
+</li>
+						</ul>
+						
+						
+						
+						<h3 class="subsubtitle task-title">Other Methods</h3>
+
+						<ul class="task-list">
+							<li>
+	<span class="tooltip">
+		<code><a href="#//api/name/startLoading">&ndash;&nbsp;startLoading</a></code>
+		<span class="tooltip"><p>Starts the loading process. Has no effect if the loading process has already been started.</p></span>
 	</span>
 	
 	
@@ -257,7 +312,8 @@ list and can&rsquo;t be created manually.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> This should only be used if you plan to directly use the
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div><div class="warning"><p><strong>Warning:</strong> This should only be used if you plan to directly use the
 C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
 API directly on items that have CocoaLibSpotify objects associated with them.</p></div>
 	</div>
@@ -271,6 +327,40 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 	<div class="method-subsection declared-in-section">
 		<h4 class="method-subtitle">Declared In</h4>
 		<code class="declared-in-ref">SPPlaylistContainer.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/loaded" title="loaded"></a>
+	<h3 class="subsubtitle method-title">loaded</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns <code>YES</code> if the reciever has loaded its metadata, otherwise <code>NO</code>. Must be KVO-compliant.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, getter=isLoaded) BOOL loaded</code></div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPAsyncLoading.h</code><br />
 	</div>				
 	
 	
@@ -317,11 +407,11 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 	
 	
 	<div class="method-subsection brief-description">
-		<p>Returns an array of <a href="../Classes/SPPlaylist.html">SPPlaylist</a> and/or SPPlaylistFolders representing the owner&rsquo;s playlists.</p>
+		<p>Returns an array of <a href="../Classes/SPPlaylist.html">SPPlaylist</a> and/or SPPlaylistFolders representing the owner&rsquo;s playlist list.</p>
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly) NSMutableArray *playlists</code></div>
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, strong) NSArray *playlists</code></div>
 	
 	
 	
@@ -330,24 +420,9 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 	
 	
 	
-	<div class="method-subsection discussion-section">
-		<h4 class="method-subtitle">Discussion</h4>
-		<p>This array is KVO compliant, and any changes made will be reflected in the user&rsquo;s account.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you need to move a playlist from one location in this list to another, please
-use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:"><code>movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:</code></a> for performance reasons.</p></div>
-	</div>
 	
 	
 	
-	
-	
-	<div class="method-subsection see-also-section">
-		<h4 class="method-subtitle">See Also</h4>
-		<ul>
-			
-			<li><code><p><a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:">&ndash; movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:</a></p></code></li>
-			
-		</ul>
-	</div>
 	
 	
 	
@@ -366,7 +441,7 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 	
 	
 	<div class="method-subsection brief-description">
-		<p>Returns the session the list is loaded in.</p>
+		<p>Returns the session the list is <a href="#//api/name/loaded">loaded</a> in.</p>
 	</div>		
 	
 	
@@ -404,8 +479,8 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 						<h2 class="subtitle subtitle-methods">Instance Methods</h2>
 						
 						<div class="section-method">
-	<a name="//api/name/createFolderWithName:error:" title="createFolderWithName:error:"></a>
-	<h3 class="subsubtitle method-title">createFolderWithName:error:</h3>
+	<a name="//api/name/createFolderWithName:callback:" title="createFolderWithName:callback:"></a>
+	<h3 class="subsubtitle method-title">createFolderWithName:callback:</h3>
 	
 	
 	
@@ -414,7 +489,7 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>- (SPPlaylistFolder *)createFolderWithName:(NSString *)<em>name</em> error:(NSError **)<em>error</em></code></div>
+	<div class="method-subsection method-declaration"><code>- (void)createFolderWithName:(NSString *)<em>name</em> callback:(void ( ^ ) ( SPPlaylistFolder *createdFolder , NSError *error ))<em>block</em></code></div>
 	
 	
 	<div class="method-subsection arguments-section parameters">
@@ -426,18 +501,13 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 		</dl>
 		
 		<dl class="argument-def parameter-def">
-			<dt><em>error</em></dt>
-			<dd><p>An error pointer that will be filled with an NSError if the operation fails.</p></dd>
+			<dt><em>block</em></dt>
+			<dd><p>The callback block to call when the operation is complete.</p></dd>
 		</dl>
 		
 	</div>
 	
 	
-	
-	<div class="method-subsection return">
-		<h4 class="method-subtitle parameter-title">Return Value</h4>
-		<p>Returns the created folder (which will also be added to the start of the <a href="#//api/name/playlists">playlists</a> property), or <code>nil</code> if the operation failed.</p>
-	</div>
 	
 	
 	
@@ -458,8 +528,8 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 </div>
 						
 						<div class="section-method">
-	<a name="//api/name/createPlaylistWithName:" title="createPlaylistWithName:"></a>
-	<h3 class="subsubtitle method-title">createPlaylistWithName:</h3>
+	<a name="//api/name/createPlaylistWithName:callback:" title="createPlaylistWithName:callback:"></a>
+	<h3 class="subsubtitle method-title">createPlaylistWithName:callback:</h3>
 	
 	
 	
@@ -468,7 +538,7 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>- (SPPlaylist *)createPlaylistWithName:(NSString *)<em>name</em></code></div>
+	<div class="method-subsection method-declaration"><code>- (void)createPlaylistWithName:(NSString *)<em>name</em> callback:(void ( ^ ) ( SPPlaylist *createdPlaylist ))<em>block</em></code></div>
 	
 	
 	<div class="method-subsection arguments-section parameters">
@@ -479,14 +549,14 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 			<dd><p>The name of the new playlist. Must be shorter than 256 characters and not consist of only whitespace.</p></dd>
 		</dl>
 		
+		<dl class="argument-def parameter-def">
+			<dt><em>block</em></dt>
+			<dd><p>The callback block to call when the operation is complete.</p></dd>
+		</dl>
+		
 	</div>
 	
 	
-	
-	<div class="method-subsection return">
-		<h4 class="method-subtitle parameter-title">Return Value</h4>
-		<p>Returns the created playlist (which will also be added to the end of the <a href="#//api/name/playlists">playlists</a> property), or <code>nil</code> if the operation failed.</p>
-	</div>
 	
 	
 	
@@ -507,8 +577,47 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 </div>
 						
 						<div class="section-method">
-	<a name="//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:" title="movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:"></a>
-	<h3 class="subsubtitle method-title">movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:</h3>
+	<a name="//api/name/flattenedPlaylists" title="flattenedPlaylists"></a>
+	<h3 class="subsubtitle method-title">flattenedPlaylists</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns a flattened array of the <a href="../Classes/SPPlaylist.html"><code>SPPlaylist</code></a> objects in the <a href="#//api/name/playlists">playlists</a> tree, without folders.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>- (NSArray *)flattenedPlaylists</code></div>
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<p>This array is computed each time this method is called, so be careful if you&rsquo;re in a performance-critical section.</p>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPPlaylistContainer.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/moveItem:toIndex:ofNewParent:callback:" title="moveItem:toIndex:ofNewParent:callback:"></a>
+	<h3 class="subsubtitle method-title">moveItem:toIndex:ofNewParent:callback:</h3>
 	
 	
 	
@@ -517,20 +626,15 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>- (BOOL)movePlaylistOrFolderAtIndex:(NSUInteger)<em>aPlaylistOrFolder</em> ofParent:(SPPlaylistFolder *)<em>existingParentFolderOrNil</em> toIndex:(NSUInteger)<em>newIndex</em> ofNewParent:(SPPlaylistFolder *)<em>aParentFolderOrNil</em> error:(NSError **)<em>err</em></code></div>
+	<div class="method-subsection method-declaration"><code>- (void)moveItem:(id)<em>playlistOrFolder</em> toIndex:(NSUInteger)<em>newIndex</em> ofNewParent:(SPPlaylistFolder *)<em>aParentFolderOrNil</em> callback:(SPErrorableOperationCallback)<em>block</em></code></div>
 	
 	
 	<div class="method-subsection arguments-section parameters">
 		<h4 class="method-subtitle parameter-title">Parameters</h4>
 		
 		<dl class="argument-def parameter-def">
-			<dt><em>aPlaylistOrFolder</em></dt>
-			<dd><p>The index of the playlist or folder in its parent (or the root list if it has no parent).</p></dd>
-		</dl>
-		
-		<dl class="argument-def parameter-def">
-			<dt><em>existingParentFolderOrNil</em></dt>
-			<dd><p>The parent folder the previous index refers to, or <code>nil</code> if there is no parent.</p></dd>
+			<dt><em>playlistOrFolder</em></dt>
+			<dd><p>A playlist or folder to move.</p></dd>
 		</dl>
 		
 		<dl class="argument-def parameter-def">
@@ -544,18 +648,13 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 		</dl>
 		
 		<dl class="argument-def parameter-def">
-			<dt><em>err</em></dt>
-			<dd><p>An NSError pointer to be filled if the operation fails.</p></dd>
+			<dt><em>block</em></dt>
+			<dd><p>The callback block to call when the operation is complete.</p></dd>
 		</dl>
 		
 	</div>
 	
 	
-	
-	<div class="method-subsection return">
-		<h4 class="method-subtitle parameter-title">Return Value</h4>
-		<p>Returns <code>YES</code> if the operation succeeded, otherwise <code>NO</code>.</p>
-	</div>
 	
 	
 	
@@ -563,8 +662,8 @@ use <a href="#//api/name/movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParen
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> This operation can fail, for example if you give invalid indexes or try to move
-a folder into itself. Please make sure you check the result of this method.</p></div>
+		<div class="warning"><p><strong>Warning:</strong> This operation can fail, for example if you give invalid indexes or try to move
+a folder into itself. Please make sure you check the result in the completion callback.</p></div>
 	</div>
 	
 	
@@ -576,6 +675,89 @@ a folder into itself. Please make sure you check the result of this method.</p><
 	<div class="method-subsection declared-in-section">
 		<h4 class="method-subtitle">Declared In</h4>
 		<code class="declared-in-ref">SPPlaylistContainer.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/removeItem:callback:" title="removeItem:callback:"></a>
+	<h3 class="subsubtitle method-title">removeItem:callback:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Remove the given playlist or folder.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>- (void)removeItem:(id)<em>playlistOrFolder</em> callback:(SPErrorableOperationCallback)<em>block</em></code></div>
+	
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>playlistOrFolder</em></dt>
+			<dd><p>The Playlist or Folder to remove.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>block</em></dt>
+			<dd><p>The callback block to execute when the operation has completed.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPPlaylistContainer.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/startLoading" title="startLoading"></a>
+	<h3 class="subsubtitle method-title">startLoading</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Starts the loading process. Has no effect if the loading process has already been started.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>- (void)startLoading</code></div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPAsyncLoading.h</code><br />
 	</div>				
 	
 	
@@ -594,7 +776,7 @@ a folder into itself. Please make sure you check the result of this method.</p><
 				<div id="footer">
 					<hr />
 					<div class="footer-copyright">
-						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-04-02)</span><br />
+						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-05-23)</span><br />
 						
 						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.0.5 (build 789)</a>.</span></p>
 						

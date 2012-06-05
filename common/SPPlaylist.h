@@ -40,7 +40,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @class SPSession;
 @protocol SPPlaylistDelegate;
 
-@interface SPPlaylist : NSObject <SPPlaylistableItem>
+@interface SPPlaylist : NSObject <SPPlaylistableItem, SPAsyncLoading, SPDelayableAsyncLoading>
 
 ///----------------------------
 /// @name Creating and Initializing Playlists
@@ -62,20 +62,23 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This convenience method creates an SPPlaylist object if one doesn't exist, or 
  returns a cached SPPlaylist if one already exists for the given URL.
  
- @warning *Important:* If you pass in an invalid playlist URL (i.e., any URL not
+ @warning If you pass in an invalid playlist URL (i.e., any URL not
  starting `spotify:user:XXXX:playlist:`, this method will return `nil`.
 
  @param playlistURL The playlist URL to create an SPPlaylist for.
  @param aSession The SPSession the playlist should exist in.
- @return Returns the created SPPlaylist object. 
+ @param block The block to be called with the created SPPlaylist object. 
  */
-+(SPPlaylist *)playlistWithPlaylistURL:(NSURL *)playlistURL inSession:(SPSession *)aSession;
++(void)playlistWithPlaylistURL:(NSURL *)playlistURL inSession:(SPSession *)aSession callback:(void (^)(SPPlaylist *playlist))block;
 
 /** Initializes an SPPlaylist from the given opaque sp_playlist struct. 
  
- @warning *Important:* For better performance and built-in caching, it is recommended
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning For better performance and built-in caching, it is recommended
  you create SPPlaylist objects using +[SPPlaylist playlistWithPlaylistStruct:inSession:], 
- +[SPPlaylist playlistWithPlaylistURL:inSession:] or the instance methods on SPSession.
+ +[SPPlaylist playlistWithPlaylistURL:inSession:callback:] or the instance methods on SPSession.
  
  @param pl The sp_playlist struct to create an SPPlaylist for.
  @param aSession The SPSession the playlist should exist in.
@@ -132,7 +135,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning *Important:* This should only be used if you plan to directly use the 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning This should only be used if you plan to directly use the 
  C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
  API directly on items that have CocoaLibSpotify objects associated with them. 
  */
@@ -164,34 +170,55 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /// @name Working with Items
 ///----------------------------
 
-/** Returns an array of SPPlaylistItem objects representing playlist's item order.
- 
- This array is KVO compliant, and any changes made will be reflected in the user's account.
- 
- @warning *Important:* You can add both `SPTrack` and `SPPlaylistItem` objects to this array.
- `SPTrack` objects will automatically be wrapped inside an `SPPlaylistItem`.
- 
- @warning *Important:* If you need to move an item from one location in this list to another, please
- use `-moveItemsAtIndexes:toIndex:error:` for performance reasons.
- 
- @see -moveItemsAtIndexes:toIndex:error:
- */
-@property (nonatomic, readonly) NSMutableArray *items;
+/** Returns an array of SPPlaylistItem objects representing playlist's item order. */
+@property (nonatomic, readonly, copy) NSArray *items;
 
 /** Move item(s) to another location in the list. 
  
  All indexes are given relative to the state of the item order before the move is executed. Therefore, you
  *don't* need to adjust the destination index to take into account items that will be moved from above it.
  
- @warning *Important:* This operation can fail, for example if you give invalid indexes. Please make sure 
+ @warning This operation can fail, for example if you give invalid indexes. Please make sure 
  you check the result of this method.
  
  @param indexes The indexes of the items to move.
  @param newLocation The index the items should be moved to.
- @param error An NSError pointer to be filled if the operation fails.
- @return Returns `YES` if the operation succeeded, otherwise `NO`. 
+ @param block The `SPErrorableOperationCallback` block to be called with an `NSError` if the operation failed or `nil` if the operation succeeded.
  */
--(BOOL)moveItemsAtIndexes:(NSIndexSet *)indexes toIndex:(NSUInteger)newLocation error:(NSError **)error;
+-(void)moveItemsAtIndexes:(NSIndexSet *)indexes toIndex:(NSUInteger)newLocation callback:(SPErrorableOperationCallback)block;
+
+/** Add an item to the playlist at the given location.
+ 
+ @warning This operation can fail, for example if you give invalid indexes. Please make sure 
+ you check the result of this method.
+ 
+ @param item The item to add.
+ @param index The target index for the item. Must be within the range 0..`playlist.length`.
+ @param block The `SPErrorableOperationCallback` block to be called with an `NSError` if the operation failed or `nil` if the operation succeeded.
+ */
+-(void)addItem:(SPTrack *)item atIndex:(NSUInteger)index callback:(SPErrorableOperationCallback)block;
+
+/** Add items to the playlist at the given location.
+ 
+ @warning This operation can fail, for example if you give invalid indexes. Please make sure 
+ you check the result of this method.
+ 
+ @param items An array of `SPTrack` objects to add.
+ @param index The target index for the items. Must be within the range 0..`playlist.length`.
+ @param block The `SPErrorableOperationCallback` block to be called with an `NSError` if the operation failed or `nil` if the operation succeeded.
+ */
+-(void)addItems:(NSArray *)items atIndex:(NSUInteger)index callback:(SPErrorableOperationCallback)block;
+
+
+/** Remove an item from the playlist at the given location.
+ 
+ @warning This operation can fail, for example if you give invalid indexes. Please make sure 
+ you check the result of this method.
+ 
+ @param index The target index for the item. Must be a valid index.
+ @param block The `SPErrorableOperationCallback` block to be called with an `NSError` if the operation failed or `nil` if the operation succeeded.
+ */
+-(void)removeItemAtIndex:(NSUInteger)index callback:(SPErrorableOperationCallback)block;
 
 @end
 
@@ -220,7 +247,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Called after one or more items in the playlist were removed from the playlist. 
  
- @warning *Important:* The index set passed to this method is not valid for the given items.
+ @warning The index set passed to this method is not valid for the given items.
  
  @param aPlaylist The playlist in which items were removed.
  @param items The items that were be removed.
@@ -234,7 +261,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Called before one or more items are added to the playlist. 
  
- @warning *Important:* The index set passed to this method is not valid for the given items.
+ @warning The index set passed to this method is not valid for the given items.
  
  @param aPlaylist The playlist to which items will be added.
  @param items The items that will be added.

@@ -29,15 +29,25 @@
  This file contains protocols and other things needed throughout the library.
  */
 
+typedef void (^SPErrorableOperationCallback)(NSError *error);
+
+/** Call the given block synchronously on the libSpotify queue, or inline if already on that queue.
+ 
+ This helper macro allows you to perform synchronous code on the libSpotify queue. 
+ It helps avoid deadlocks by checking if you're already on the queue and just calls the 
+ block inline if that's the case.
+ 
+ @param block The block to execute.
+ */
+#define SPDispatchSyncIfNeeded(block) if (dispatch_get_current_queue() == [SPSession libSpotifyQueue]) block(); else dispatch_sync([SPSession libSpotifyQueue], block);
+
 @class SPTrack;
 @protocol SPSessionPlaybackDelegate;
 @protocol SPSessionAudioDeliveryDelegate;
 
 @protocol SPPlaylistableItem <NSObject>
-
 -(NSString *)name;
 -(NSURL *)spotifyURL;
-
 @end
 
 @protocol SPSessionPlaybackProvider <NSObject>
@@ -46,8 +56,8 @@
 @property (nonatomic, readwrite, assign) __unsafe_unretained id <SPSessionPlaybackDelegate> playbackDelegate;
 @property (nonatomic, readwrite, assign) __unsafe_unretained id <SPSessionAudioDeliveryDelegate> audioDeliveryDelegate;
 
--(BOOL)preloadTrackForPlayback:(SPTrack *)aTrack error:(NSError **)error;
--(BOOL)playTrack:(SPTrack *)aTrack error:(NSError **)error;
+-(void)preloadTrackForPlayback:(SPTrack *)aTrack callback:(SPErrorableOperationCallback)block;
+-(void)playTrack:(SPTrack *)aTrack callback:(SPErrorableOperationCallback)block;
 -(void)seekPlaybackToOffset:(NSTimeInterval)offset;
 -(void)unloadPlayback;
 

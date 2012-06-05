@@ -40,8 +40,6 @@
 	
 	<option value="properties">Properties</option>
 	
-	<option value="//api/name/delegate">&nbsp;&nbsp;&nbsp;&nbsp;delegate</option>
-	
 	<option value="//api/name/destinationUser">&nbsp;&nbsp;&nbsp;&nbsp;destinationUser</option>
 	
 	<option value="//api/name/inboxOperation">&nbsp;&nbsp;&nbsp;&nbsp;inboxOperation</option>
@@ -57,14 +55,14 @@
 	
 	<option value="class_methods">Class Methods</option>
 	
-	<option value="//api/name/sendTracks:toUser:message:inSession:delegate:">&nbsp;&nbsp;&nbsp;&nbsp;+ sendTracks:toUser:message:inSession:delegate:</option>
+	<option value="//api/name/sendTracks:toUser:message:inSession:callback:">&nbsp;&nbsp;&nbsp;&nbsp;+ sendTracks:toUser:message:inSession:callback:</option>
 	
 	
 	
 	
 	<option value="instance_methods">Instance Methods</option>
 	
-	<option value="//api/name/initBySendingTracks:toUser:message:inSession:delegate:">&nbsp;&nbsp;&nbsp;&nbsp;- initBySendingTracks:toUser:message:inSession:delegate:</option>
+	<option value="//api/name/initBySendingTracks:toUser:message:inSession:callback:">&nbsp;&nbsp;&nbsp;&nbsp;- initBySendingTracks:toUser:message:inSession:callback:</option>
 	
 	
 	
@@ -94,8 +92,6 @@
 
 <li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#properties">Properties</a></span><ul>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/delegate">delegate</a></span></li>
-	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/destinationUser">destinationUser</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/inboxOperation">inboxOperation</a></span></li>
@@ -112,7 +108,7 @@
 
 <li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#class_methods">Class Methods</a></span><ul>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/sendTracks:toUser:message:inSession:delegate:">sendTracks:toUser:message:inSession:delegate:</a></span></li>
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/sendTracks:toUser:message:inSession:callback:">sendTracks:toUser:message:inSession:callback:</a></span></li>
 	
 </ul></li>
 
@@ -120,7 +116,7 @@
 
 <li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#instance_methods">Instance Methods</a></span><ul>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/initBySendingTracks:toUser:message:inSession:delegate:">initBySendingTracks:toUser:message:inSession:delegate:</a></span></li>
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/initBySendingTracks:toUser:message:inSession:callback:">initBySendingTracks:toUser:message:inSession:callback:</a></span></li>
 	
 </ul></li>
 
@@ -177,14 +173,14 @@
 						<ul class="task-list">
 							<li>
 	<span class="tooltip">
-		<code><a href="#//api/name/sendTracks:toUser:message:inSession:delegate:">+&nbsp;sendTracks:toUser:message:inSession:delegate:</a></code>
+		<code><a href="#//api/name/sendTracks:toUser:message:inSession:callback:">+&nbsp;sendTracks:toUser:message:inSession:callback:</a></code>
 		<span class="tooltip"><p>Creates an SPPostTracksToInboxOperation for the given details.</p></span>
 	</span>
 	
 	
 </li><li>
 	<span class="tooltip">
-		<code><a href="#//api/name/initBySendingTracks:toUser:message:inSession:delegate:">&ndash;&nbsp;initBySendingTracks:toUser:message:inSession:delegate:</a></code>
+		<code><a href="#//api/name/initBySendingTracks:toUser:message:inSession:callback:">&ndash;&nbsp;initBySendingTracks:toUser:message:inSession:callback:</a></code>
 		<span class="tooltip"><p>Initializes an SPPostTracksToInboxOperation for the given details.</p></span>
 	</span>
 	
@@ -198,13 +194,6 @@
 
 						<ul class="task-list">
 							<li>
-	<span class="tooltip">
-		<code><a href="#//api/name/delegate">&nbsp;&nbsp;delegate</a></code>
-		<span class="tooltip"><p>Returns the operation&rsquo;s delegate.</p></span>
-	</span>
-	<span class="task-item-suffix">property</span>
-	
-</li><li>
 	<span class="tooltip">
 		<code><a href="#//api/name/destinationUser">&nbsp;&nbsp;destinationUser</a></code>
 		<span class="tooltip"><p>Returns the username of the user the <a href="#//api/name/tracks">tracks</a> the operation is sending <a href="#//api/name/tracks">tracks</a> to.</p></span>
@@ -251,40 +240,6 @@
 					<div class="section section-methods">
 						<a title="Properties" name="properties"></a>
 						<h2 class="subtitle subtitle-methods">Properties</h2>
-						
-						<div class="section-method">
-	<a name="//api/name/delegate" title="delegate"></a>
-	<h3 class="subsubtitle method-title">delegate</h3>
-	
-	
-	
-	<div class="method-subsection brief-description">
-		<p>Returns the operation&rsquo;s delegate.</p>
-	</div>		
-	
-	
-	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, assign) __unsafe_unretained id&lt;&gt; delegate</code></div>
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	<div class="method-subsection declared-in-section">
-		<h4 class="method-subtitle">Declared In</h4>
-		<code class="declared-in-ref">SPPostTracksToInboxOperation.h</code><br />
-	</div>				
-	
-	
-</div>
 						
 						<div class="section-method">
 	<a name="//api/name/destinationUser" title="destinationUser"></a>
@@ -342,7 +297,8 @@
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> This should only be used if you plan to directly use the
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div><div class="warning"><p><strong>Warning:</strong> This should only be used if you plan to directly use the
 C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
 API directly on items that have CocoaLibSpotify objects associated with them.</p></div>
 	</div>
@@ -472,8 +428,8 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 						<h2 class="subtitle subtitle-methods">Class Methods</h2>
 						
 						<div class="section-method">
-	<a name="//api/name/sendTracks:toUser:message:inSession:delegate:" title="sendTracks:toUser:message:inSession:delegate:"></a>
-	<h3 class="subsubtitle method-title">sendTracks:toUser:message:inSession:delegate:</h3>
+	<a name="//api/name/sendTracks:toUser:message:inSession:callback:" title="sendTracks:toUser:message:inSession:callback:"></a>
+	<h3 class="subsubtitle method-title">sendTracks:toUser:message:inSession:callback:</h3>
 	
 	
 	
@@ -482,7 +438,7 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>+ (SPPostTracksToInboxOperation *)sendTracks:(NSArray *)<em>tracksToSend</em> toUser:(NSString *)<em>user</em> message:(NSString *)<em>aFriendlyGreeting</em> inSession:(SPSession *)<em>aSession</em> delegate:(id&lt;SPPostTracksToInboxOperationDelegate&gt;)<em>completionDelegate</em></code></div>
+	<div class="method-subsection method-declaration"><code>+ (SPPostTracksToInboxOperation *)sendTracks:(NSArray *)<em>tracksToSend</em> toUser:(NSString *)<em>user</em> message:(NSString *)<em>aFriendlyGreeting</em> inSession:(SPSession *)<em>aSession</em> callback:(SPErrorableOperationCallback)<em>block</em></code></div>
 	
 	
 	<div class="method-subsection arguments-section parameters">
@@ -509,8 +465,8 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 		</dl>
 		
 		<dl class="argument-def parameter-def">
-			<dt><em>completionDelegate</em></dt>
-			<dd><p>The <a href="#//api/name/delegate">delegate</a> to send success/failure messages to.</p></dd>
+			<dt><em>block</em></dt>
+			<dd><p>The <code>SPErrorableOperationCallback</code> block to be called with an <code>NSError</code> if the operation failed or <code>nil</code> if the operation succeeded.</p></dd>
 		</dl>
 		
 	</div>
@@ -529,7 +485,7 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This convenience method is simply returns a new, autoreleased SPPostTracksToInboxOperation
-object. No caching is performed.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> Tracks will be posted to the given user as soon as a SPPostTracksToInboxOperation
+object. No caching is performed.</p><div class="warning"><p><strong>Warning:</strong> Tracks will be posted to the given user as soon as a SPPostTracksToInboxOperation
 object is created. Be sure you want to post the <a href="#//api/name/tracks">tracks</a> before creating the object!</p></div>
 	</div>
 	
@@ -556,8 +512,8 @@ object is created. Be sure you want to post the <a href="#//api/name/tracks">tra
 						<h2 class="subtitle subtitle-methods">Instance Methods</h2>
 						
 						<div class="section-method">
-	<a name="//api/name/initBySendingTracks:toUser:message:inSession:delegate:" title="initBySendingTracks:toUser:message:inSession:delegate:"></a>
-	<h3 class="subsubtitle method-title">initBySendingTracks:toUser:message:inSession:delegate:</h3>
+	<a name="//api/name/initBySendingTracks:toUser:message:inSession:callback:" title="initBySendingTracks:toUser:message:inSession:callback:"></a>
+	<h3 class="subsubtitle method-title">initBySendingTracks:toUser:message:inSession:callback:</h3>
 	
 	
 	
@@ -566,7 +522,7 @@ object is created. Be sure you want to post the <a href="#//api/name/tracks">tra
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>- (id)initBySendingTracks:(NSArray *)<em>tracksToSend</em> toUser:(NSString *)<em>user</em> message:(NSString *)<em>aFriendlyGreeting</em> inSession:(SPSession *)<em>aSession</em> delegate:(id&lt;SPPostTracksToInboxOperationDelegate&gt;)<em>completionDelegate</em></code></div>
+	<div class="method-subsection method-declaration"><code>- (id)initBySendingTracks:(NSArray *)<em>tracksToSend</em> toUser:(NSString *)<em>user</em> message:(NSString *)<em>aFriendlyGreeting</em> inSession:(SPSession *)<em>aSession</em> callback:(SPErrorableOperationCallback)<em>block</em></code></div>
 	
 	
 	<div class="method-subsection arguments-section parameters">
@@ -593,8 +549,8 @@ object is created. Be sure you want to post the <a href="#//api/name/tracks">tra
 		</dl>
 		
 		<dl class="argument-def parameter-def">
-			<dt><em>completionDelegate</em></dt>
-			<dd><p>The <a href="#//api/name/delegate">delegate</a> to send success/failure messages to.</p></dd>
+			<dt><em>block</em></dt>
+			<dd><p>The <code>SPErrorableOperationCallback</code> block to be called with an <code>NSError</code> if the operation failed or <code>nil</code> if the operation succeeded.</p></dd>
 		</dl>
 		
 	</div>
@@ -612,7 +568,7 @@ object is created. Be sure you want to post the <a href="#//api/name/tracks">tra
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> Tracks will be posted to the given user as soon as a SPPostTracksToInboxOperation
+		<div class="warning"><p><strong>Warning:</strong> Tracks will be posted to the given user as soon as a SPPostTracksToInboxOperation
 object is created. Be sure you want to post the <a href="#//api/name/tracks">tracks</a> before creating the object!</p></div>
 	</div>
 	
@@ -643,7 +599,7 @@ object is created. Be sure you want to post the <a href="#//api/name/tracks">tra
 				<div id="footer">
 					<hr />
 					<div class="footer-copyright">
-						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-04-02)</span><br />
+						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-05-23)</span><br />
 						
 						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.0.5 (build 789)</a>.</span></p>
 						

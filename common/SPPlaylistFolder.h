@@ -41,11 +41,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @class SPPlaylistContainer;
 @class SPSession;
 
-@interface SPPlaylistFolder : NSObject {
-	NSRange containerPlaylistRange;
-	// ^ For performance and integrity checking - the first item should be the folder marker, 
-	// the last the end folder marker. 
-}
+@interface SPPlaylistFolder : NSObject
 
 ///----------------------------
 /// @name Properties
@@ -53,7 +49,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the folder's ID, as used in the C LibSpotify API. 
  
- @warning *Important:* This should only be used if you plan to directly use the 
+ @warning This should only be used if you plan to directly use the 
  C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
  API directly on items that have CocoaLibSpotify objects associated with them. 
  */
@@ -66,21 +62,19 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @property (nonatomic, readonly, assign) __unsafe_unretained SPPlaylistContainer *parentContainer;
 
 /* Returns the folder's parent folder, or `nil` if the folder is at the top level of its container. */
--(SPPlaylistFolder *)parentFolder;
+@property (nonatomic, readonly) __weak SPPlaylistFolder *parentFolder;
 
 /* Returns the folder's parent folder stack, or `nil` if the folder is at the top level of its container. */
 -(NSArray *)parentFolders;
 
 /** Returns an array of SPPlaylist and/or SPPlaylistFolders representing the folder's child playlists.
+  
+ @warning If you need to move a playlist from one location in this list to another,
+ use `-[SPPlaylistContainer moveItem:toIndex:ofNewParent:callback:]`.
  
- This array is KVO compliant, and any changes made will be reflected in the user's account.
- 
- @warning *Important:* If you need to move a playlist from one location in this list to another, please
- use `-[SPPlaylistContainer movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:]` for performance reasons.
- 
- @see [SPPlaylistContainer movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:]
+ @see [SPPlaylistContainer moveItem:toIndex:ofNewParent:callback:]
  */
-@property (nonatomic, readonly) NSMutableArray *playlists;
+@property (nonatomic, readonly, strong) NSArray *playlists;
 
 /** Returns the session the folder is loaded in. */
 @property (nonatomic, readonly, assign) __unsafe_unretained SPSession *session;

@@ -41,7 +41,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @class SPPlaylist;
 @class SPPlaylistFolder;
 
-@interface SPPlaylistContainer : NSObject
+@interface SPPlaylistContainer : NSObject <SPAsyncLoading, SPDelayableAsyncLoading>
 
 ///----------------------------
 /// @name Properties
@@ -49,7 +49,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning *Important:* This should only be used if you plan to directly use the 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning This should only be used if you plan to directly use the 
  C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
  API directly on items that have CocoaLibSpotify objects associated with them. 
  */
@@ -61,16 +64,14 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** Returns the owner of the playlist list. */
 @property (nonatomic, readonly, strong) SPUser *owner;
 
-/** Returns an array of SPPlaylist and/or SPPlaylistFolders representing the owner's playlists.
+/** Returns an array of SPPlaylist and/or SPPlaylistFolders representing the owner's playlist list. */
+@property (nonatomic, readonly, strong) NSArray *playlists;
+
+/** Returns a flattened array of the `SPPlaylist` objects in the playlists tree, without folders. 
  
- This array is KVO compliant, and any changes made will be reflected in the user's account.
- 
- @warning *Important:* If you need to move a playlist from one location in this list to another, please
- use `-movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:` for performance reasons.
- 
- @see movePlaylistOrFolderAtIndex:ofParent:toIndex:ofNewParent:error:
+ This array is computed each time this method is called, so be careful if you're in a performance-critical section.
 */
-@property (nonatomic, readonly) NSMutableArray *playlists;
+-(NSArray *)flattenedPlaylists;
 
 /** Returns the session the list is loaded in. */
 @property (nonatomic, readonly, assign) __unsafe_unretained SPSession *session;
@@ -82,33 +83,37 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** Create a new, empty folder. 
  
  @param name The name of the new folder.
- @param error An error pointer that will be filled with an NSError if the operation fails.
- @return Returns the created folder (which will also be added to the start of the playlists property), or `nil` if the operation failed.
+ @param block The callback block to call when the operation is complete.
  */
--(SPPlaylistFolder *)createFolderWithName:(NSString *)name error:(NSError **)error;
+-(void)createFolderWithName:(NSString *)name callback:(void (^)(SPPlaylistFolder *createdFolder, NSError *error))block;
 
 /** Create a new, empty playlist. 
  
  @param name The name of the new playlist. Must be shorter than 256 characters and not consist of only whitespace.
- @return Returns the created playlist (which will also be added to the end of the playlists property), or `nil` if the operation failed.
+ @param block The callback block to call when the operation is complete.
  */
--(SPPlaylist *)createPlaylistWithName:(NSString *)name;
+-(void)createPlaylistWithName:(NSString *)name callback:(void (^)(SPPlaylist *createdPlaylist))block;
+
+/** Remove the given playlist or folder. 
+ 
+ @param playlistOrFolder The Playlist or Folder to remove.
+ @param block The callback block to execute when the operation has completed.
+ */
+-(void)removeItem:(id)playlistOrFolder callback:(SPErrorableOperationCallback)block;
 
 /** Move a playlist or folder to another location in the list. 
  
- @warning *Important:* This operation can fail, for example if you give invalid indexes or try to move 
- a folder into itself. Please make sure you check the result of this method.
+ @warning This operation can fail, for example if you give invalid indexes or try to move 
+ a folder into itself. Please make sure you check the result in the completion callback.
  
- @param aPlaylistOrFolder The index of the playlist or folder in its parent (or the root list if it has no parent).
- @param existingParentFolderOrNil The parent folder the previous index refers to, or `nil` if there is no parent.
+ @param playlistOrFolder A playlist or folder to move.
  @param newIndex The desired destination index in the destination parent folder (or root list if there's no parent).
  @param aParentFolderOrNil The new parent folder, or nil if there is no parent.
- @param err An NSError pointer to be filled if the operation fails.
- @return Returns `YES` if the operation succeeded, otherwise `NO`. 
+ @param block The callback block to call when the operation is complete.
  */
--(BOOL)movePlaylistOrFolderAtIndex:(NSUInteger)aPlaylistOrFolder 
-						  ofParent:(SPPlaylistFolder *)existingParentFolderOrNil
-						   toIndex:(NSUInteger)newIndex 
-					   ofNewParent:(SPPlaylistFolder *)aParentFolderOrNil
-							 error:(NSError **)err;
+-(void)moveItem:(id)playlistOrFolder
+		toIndex:(NSUInteger)newIndex 
+	ofNewParent:(SPPlaylistFolder *)aParentFolderOrNil
+	   callback:(SPErrorableOperationCallback)block;
+
 @end

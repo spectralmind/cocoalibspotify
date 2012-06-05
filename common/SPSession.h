@@ -30,21 +30,6 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/** This class provides core functionality for interacting with Spotify. You must have a valid, logged-in
- SPSession object before using any other part of the API.
- 
- To log in and use CocoaLibSpotify, you need two things:
- 
- - An application key, available at the [Spotify Developers Site](http://developer.spotify.com/).
- - A user account with the Premium subscription level.
- 
-Playback
- 
- Please note that CocoaLibSpotify does _not_ push audio data to the system's audio
- output. To hear tracks, you need to push the raw audio data provided to your application
- as you see fit. See the SimplePlayback sample project for an example of how to do this.
- */
-
 #import <Foundation/Foundation.h>
 #import "CocoaLibSpotifyPlatformImports.h"
 
@@ -65,21 +50,53 @@ Playback
 @protocol SPPostTracksToInboxOperationDelegate;
 @protocol SPSessionPlaybackProvider;
 
-@interface SPSession : NSObject <SPSessionPlaybackProvider>
+/** This class provides core functionality for interacting with Spotify. You must have a valid, logged-in
+ SPSession object before using any other part of the API.
+ 
+ To log in and use CocoaLibSpotify, you need two things:
+ 
+ - An application key, available at the [Spotify Developer Site](http://developer.spotify.com/).
+ - A user account with the Premium subscription level.
+ 
+ Playback
+ 
+ Please note that CocoaLibSpotify does _not_ push audio data to the system's audio
+ output. To hear tracks, you need to push the raw audio data provided to your application
+ as you see fit. See the SimplePlayback sample project for an example of how to do this.
+ */
+@interface SPSession : NSObject <SPSessionPlaybackProvider, SPAsyncLoading>
+
+/** Returns the dispatch queue that methods interacting with the libSpotify C API must be called on.
+ 
+ Any methods in CocoaLibSpotify that publicly expose parts of the libSpotify C API *or* direct calls 
+ to libSpotify's C functions must be called on the queue returned by this method. This queue is dedicated
+ to libSpotify and is separate from the application's main queue (`dispatch_get_main_queue()`).
+ 
+ Methods in CocoaLibSpotify that require this queue are documented as such, and will throw an
+ assertion if called from any other queue. libSpotify C functions will not throw an assertion - instead
+ you're likely to trigger an apparently random crash in the future since the library is not thread-safe.
+ 
+ Examples for using this queue properly can be found in the project's README file.
+ */
++(dispatch_queue_t)libSpotifyQueue;
+
+/** Returns `YES` if the Spotify client is installed on the current device/machine. */
++(BOOL)spotifyClientInstalled;
+
+/** Attempts to launch the Spotify client. Returns `YES` if successful. */
++(BOOL)launchSpotifyClientIfInstalled;
 
 /** Returns a shared SPSession object. 
  
  This is a convenience method for creating and storing a single SPSession instance.
  
- @warning *Important:* The C API that CocoaLibSpotify uses (LibSpotify) doesn't 
+ @warning The C API that CocoaLibSpotify uses (LibSpotify) doesn't 
  support using multiple sessions in the same process. While you can either create and 
  store your SPSession object using this convenience method or yourself using -[SPSession init],
  make sure you only have _one_ instance of SPSession active in your process at a time.
  
- @warning *Important:* This will return `nil` until +[SPSession initializeSharedSessionWithApplicationKey:userAgent:error:] is
+ @warning This will return `nil` until +[SPSession initializeSharedSessionWithApplicationKey:userAgent:loadingPolicy:error:] is
  successfully called.
-
- 
  */
 +(SPSession *)sharedSession;
 
@@ -87,18 +104,20 @@ Playback
  
  Your application key and user agent must be valid to create an SPSession object.
  
- @warning *Important:* The C API that CocoaLibSpotify uses (LibSpotify) doesn't 
+ @warning The C API that CocoaLibSpotify uses (LibSpotify) doesn't 
  support using multiple sessions in the same process. While you can either create and 
- store your SPSession object using this convenience method or yourself using -[SPSession initWithApplicationKey:userAgent:error:],
+ store your SPSession object using this convenience method or yourself using -[SPSession initWithApplicationKey:userAgent:loadingPolicy:error:],
  make sure you only have _one_ instance of SPSession active in your process at a time.
  
  @param appKey Your application key as an NSData.
  @param userAgent Your application's user agent (for example, com.yourcompany.MyGreatApp).
+ @param policy The loading policy to use.
  @param error An error pointer to be filled with an NSError should a login problem occur. 
  @return `YES` the the shared session was initialized correctly, otherwise `NO`.
  */
 +(BOOL)initializeSharedSessionWithApplicationKey:(NSData *)appKey
 									   userAgent:(NSString *)userAgent
+								   loadingPolicy:(SPAsyncLoadingPolicy)policy
 										   error:(NSError **)error;
 
 /** The "debug" build ID of libspotify.
@@ -120,18 +139,20 @@ Playback
  
 @param appKey Your application key as an NSData.
 @param userAgent Your application's user agent (for example, com.yourcompany.MyGreatApp).
+@param policy The loading policy to use.
 @param error An error pointer to be filled with an NSError should a login problem occur.
 @return Returns a newly initialised SPSession object.
  */
 -(id)initWithApplicationKey:(NSData *)appKey
 				  userAgent:(NSString *)userAgent
+			  loadingPolicy:(SPAsyncLoadingPolicy)policy
 					  error:(NSError **)error;
 
 /** Attempt to login to the Spotify service.
  
  Login success or fail methods will be called on the session's delegate.
  
-@warning *Important:* You must have successfully logged in to the Spotify service before using 
+@warning You must have successfully logged in to the Spotify service before using 
  most other API methods.
  
  @param userName The username of the user who wishes to log in.
@@ -146,7 +167,7 @@ Playback
  
  Login success or fail methods will be called on the session's delegate.
  
- @warning *Important:* You must have successfully logged in to the Spotify service before using 
+ @warning You must have successfully logged in to the Spotify service before using 
  most other API methods.
  
  @param userName The username of the user who wishes to log in.
@@ -158,21 +179,27 @@ Playback
 			 existingCredential:(NSString *)credential
 			rememberCredentials:(BOOL)rememberMe;
 
+/** The username used to log in to this session.
+ 
+ @param block The block to be called with the username that was used to login to the current session, or 
+ `nil` if the session is not logged in.
+ */
+-(void)fetchLoginUserName:(void (^)(NSString *loginUserName))block;
+
 /** Attempt to login to the Spotify service using previously stored credentials.
  
  Login success or fail methods will be called on the session's delegate. 
  
- @param error An error pointer to be filled with an NSError should a login problem occur.
- @return Returns `YES` if user credentials had been stored and the login attempt began successfully.
+ @param block A block to be called when operation has successfully began. The error parameter will be non-`nil` is an error occurred.
  */
--(BOOL)attemptLoginWithStoredCredentials:(NSError **)error;
+-(void)attemptLoginWithStoredCredentials:(SPErrorableOperationCallback)block;
 
 /** The username saved in the stored credentials.
  
- @return Returns the username that will be logged in with -[SPSession attemptLoginWithStoredCredentials:], or 
+ @param block The block to be called with the username that will be logged in with -[SPSession attemptLoginWithStoredCredentials:], or 
  `nil` if there are no stored credentials.
  */
--(NSString *)storedCredentialsUserName;
+-(void)fetchStoredCredentialsUserName:(void (^)(NSString *storedUserName))block;
 
 /** Remove stored credentials from the encrypted store.
  
@@ -185,15 +212,19 @@ Playback
  
  This method will force libSpotify to flush its caches. If you're writing an iOS application, call
  this when your application is put into the background to ensure correct operation.
+ 
+ @param completionBlock The block to be called when the operation has completed.
  */
--(void)flushCaches;
+-(void)flushCaches:(void (^)())completionBlock;
 
 /** Log out from the Spotify service.
  
  This method will cleanly log out from the Spotify service and clear any in-memory caches. 
  Called automatically when the instance is deallocated.
+ 
+ @param completionBlock The block to be called when the logout process has completed.
  */
--(void)logout;
+-(void)logout:(void (^)())completionBlock;
 
 /** Returns the current connection state.
  
@@ -241,7 +272,10 @@ Playback
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning *Important:* This should only be used if you plan to directly use the 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning This should only be used if you plan to directly use the 
  C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
  API directly on items that have CocoaLibSpotify objects associated with them. 
  */
@@ -249,6 +283,57 @@ Playback
 
 /** Returns the user agent value the session was initialized with. */
 @property (nonatomic, copy, readonly) NSString *userAgent;
+
+/** Returns the loading policy of the session. */
+@property (nonatomic, readonly) SPAsyncLoadingPolicy loadingPolicy;
+
+///----------------------------
+/// @name Social and Scrobbling
+///----------------------------
+
+/** Returns `YES` if the session is currently a "Private" session - that is, scrobbling to 
+ social services is temporarily disabled.
+
+ @warning *Important:* This may change back to `NO` after a long period of inactivity.
+*/ 
+@property (nonatomic, readwrite, getter=isPrivateSession) BOOL privateSession;
+
+/** Sets the scrobbling status for the given social service. 
+ 
+ @param state The desired scrobbling state. Note: Setting global status isn't yet supported.
+ @param service The social service to set scrobbling state for.
+ @param block The `SPErrorableOperationCallback` block to be called with an `NSError` if the operation failed or `nil` if the operation succeeded.
+ */
+-(void)setScrobblingState:(sp_scrobbling_state)state forService:(sp_social_provider)service callback:(SPErrorableOperationCallback)block;
+
+/** Sets the scrobbling credientials for the given social service.
+ 
+ Call `setScrobblingState:forService:callback:` to force a new connection after changing details. If the credentials 
+ are invalid, the `session:didEncounterScrobblingError:` method on your `SPSessionDelegate` will be called with more information.
+ 
+ @param userName The username for the service (i.e., Last.fm).
+ @param password The password for the service.
+ @param service The social service to set credentials for.
+ @param block The `SPErrorableOperationCallback` block to be called with an `NSError` if the operation failed or `nil` if the operation succeeded.
+ */
+-(void)setScrobblingUserName:(NSString *)userName password:(NSString *)password forService:(sp_social_provider)service callback:(SPErrorableOperationCallback)block;
+
+/** Gets the scrobbling status for the given social service.
+ 
+ @param service The social service to get status for.
+ @param block The block to be called with the scrobbling state of the given service, or an `NSError` if a problem occurred.
+ */
+-(void)fetchScrobblingStateForService:(sp_social_provider)service callback:(void (^)(sp_scrobbling_state state, NSError *error))block;
+
+/** Gets whether scrobbling is allowed for the given service.
+ 
+ If this method returns `NO` for a given service, it cannot be scrobbled to. UI for setting up scrobbling
+ for the service should either be disabled or hidden in this case.
+ 
+ @param service The social service to get status for.
+ @param block The block to be called with the scrobbling state for the given service, or an `NSError` if a problem occurred.
+ */
+-(void)fetchScrobblingAllowedForService:(sp_social_provider)service callback:(void (^)(BOOL scrobblingAllowed, NSError *error))block;
 
 ///----------------------------
 /// @name Offline Syncing
@@ -266,11 +351,21 @@ Playback
 /** Returns a dictionary containing information about any offline sync activity. See Contants for keys. */
 @property (nonatomic, readonly, copy) NSDictionary *offlineStatistics;
 
-/** Returns the time until the user needs to reconnect to Spotify to renew offline syncing keys. */
-@property (nonatomic, readonly) NSTimeInterval offlineKeyTimeRemaining;
+/** Get the time until the user needs to reconnect to Spotify to renew offline syncing keys.
+
+ @param block The block to be called with the remaining time.
+ */
+-(void)fetchOfflineKeyTimeRemaining:(void (^)(NSTimeInterval remainingTime))block;
 
 /** Returns the last error encountered during offline syncing, or `nil` if there is no problem. */
 @property (nonatomic, readonly, strong) NSError *offlineSyncError;
+
+/** Returns `YES` if the session has finished loading.
+ 
+ The session is considered loaded when the `inboxPlaylist`, `starredPlaylist`, 
+ `user`, `locale` and `userPlaylists` properties are set.
+ */ 
+@property (nonatomic, readonly, getter=isLoaded) BOOL loaded;
 
 ///----------------------------
 /// @name User Content
@@ -304,67 +399,73 @@ Playback
 
 /** Send tracks to another Spotify user.
  
- @warning *Important:* Tracks will be posted to the given user as soon as this
+ @warning Tracks will be posted to the given user as soon as this
  method is called. Be sure you want to post the tracks before doing so!
  
  @param tracks An array of SPTrack objects to send.
  @param targetUserName The username of the user to send the tracks to.
  @param aFriendlyMessage The message to send with the tracks, if any.
- @param operationDelegate The delegate to send success/failure messages to.
+ @param block The `SPErrorableOperationCallback` block to be called with an `NSError` if the operation failed or `nil` if the operation succeeded.
  @return Returns an SPPostTracksToInboxOperation object representing the operation.
  @see SPPostTracksToInboxOperation
- @see SPPostTracksToInboxOperationDelegate
  */
 -(SPPostTracksToInboxOperation *)postTracks:(NSArray *)tracks 
 							  toInboxOfUser:(NSString *)targetUserName
 								withMessage:(NSString *)aFriendlyMessage
-								   delegate:(id <SPPostTracksToInboxOperationDelegate>)operationDelegate;
+								   callback:(SPErrorableOperationCallback)block;
 
 ///----------------------------
 /// @name Accessing Content by URL
 ///----------------------------
 
-/** Returns an SPAlbum object representing the given URL, or `nil` if the URL is not a valid album URL. 
+/** Get an SPAlbum object representing the given URL, or `nil` if the URL is not a valid album URL. 
  
  @param url The URL of the album.
+ @param block The block to be called with the album, or `nil` if given an invalid URL.
  */
--(SPAlbum *)albumForURL:(NSURL *)url;
+-(void)albumForURL:(NSURL *)url callback:(void (^)(SPAlbum *album))block;
 
-/** Returns an SPArtist object representing the given URL, or `nil` if the URL is not a valid artist URL.
+/** Get an SPArtist object representing the given URL, or `nil` if the URL is not a valid artist URL.
  
  @param url The URL of the artist.
+ @param block The block to be called with the artist, or `nil` if given an invalid URL.
  */
--(SPArtist *)artistForURL:(NSURL *)url;
+-(void)artistForURL:(NSURL *)url callback:(void (^)(SPArtist *artist))block;
 
 /** Returns an SPImage object representing the given URL, or `nil` if the URL is not a valid image URL.
  
  @param url The URL of the image.
+ @param block The block to be called with the image, or `nil` if given an invalid URL.
  */
--(SPImage *)imageForURL:(NSURL *)url;
+-(void)imageForURL:(NSURL *)url callback:(void (^)(SPImage *image))block;
 
 /** Returns an SPPlaylist object representing the given URL, or `nil` if the URL is not a valid playlist URL.
  
  @param url The URL of the playlist.
+ @param block The block to be called with the playlist, or `nil` if given an invalid URL.
  */
--(SPPlaylist *)playlistForURL:(NSURL *)url;
+-(void)playlistForURL:(NSURL *)url callback:(void (^)(SPPlaylist *playlist))block;
 
 /** Returns an SPSearch object representing the given URL, or `nil` if the URL is not a valid search URL. 
  
  @param url The URL of the search query.
+ @param block The block to be called with the search, or `nil` if given an invalid URL.
  */
--(SPSearch *)searchForURL:(NSURL *)url;
+-(void)searchForURL:(NSURL *)url callback:(void (^)(SPSearch *search))block;
 
 /** Returns an SPTrack object representing the given URL, or `nil` if the URL is not a valid track URL. 
  
  @param url The URL of the track.
+ @param block The block to be called with the track, or `nil` if given an invalid URL.
  */
--(SPTrack *)trackForURL:(NSURL *)url;
+-(void)trackForURL:(NSURL *)url callback:(void (^)(SPTrack *track))block;
 
 /** Returns an SPUser object representing the given URL, or `nil` if the URL is not a valid user URL. 
  
  @param url The URL of the user.
+ @param block The block to be called with the user, or `nil` if given an invalid URL.
  */
--(SPUser *)userForURL:(NSURL *)url;
+-(void)userForURL:(NSURL *)url callback:(void (^)(SPUser *user))block;
 
 /** Returns an object representation of the given Spotify URL.
 
@@ -372,10 +473,9 @@ Playback
  what the given URL represents and returns that for you.
  
  @param aSpotifyUrlOfSomeKind A Spotify URL (starting `spotify:`).
- @param linkType A pointer to an sp_linktype variable, which will be filled with the link type if not NULL.
- @return Returns an SPAlbum, SPArtist, SPPlaylist, SPSearch, SPTrack or SPUser object for the given URL, or `nil` if the URL is invalid.
+ @param block The block to be called with the `sp_linktype` and object representation of the URL, or `nil` if given an invalid URL.
  */
--(id)objectRepresentationForSpotifyURL:(NSURL *)aSpotifyUrlOfSomeKind linkType:(sp_linktype *)linkType;
+-(void)objectRepresentationForSpotifyURL:(NSURL *)aSpotifyUrlOfSomeKind callback:(void (^)(sp_linktype linkType, id objectRepresentation))block;
 
 ///----------------------------
 /// @name Accessing Arbitrary Content
@@ -386,6 +486,9 @@ Playback
  This method caches SPPlaylist objects using the same cache the +[SPPlaylist playlist...] 
  convenience methods use.
  
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
  @param playlist The sp_playlist struct.
  @return Returns the created or cached SPPlaylist object.
  */
@@ -394,6 +497,9 @@ Playback
 /** Create and cache an SPPlaylistFolder for the given folder ID from the C LibSpotify API.
  
  This method caches SPPlaylistFolder objects by ID.
+ 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
  
  @param playlistId The folder ID.
  @param aContainer The SPPlaylistContainer that contains the given folder.
@@ -416,6 +522,9 @@ Playback
  This method caches SPTrack objects using the same cache the +[SPTrack track...] 
  convenience methods use.
  
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
  @param track The sp_track struct.
  @return Returns the created or cached SPTrack object.
  */
@@ -425,6 +534,9 @@ Playback
  
  This method caches SPUser objects using the same cache the +[SPUser user...] 
  convenience methods use.
+ 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
  
  @param user The sp_user struct.
  @return Returns the created or cached SPUser object.
@@ -438,7 +550,7 @@ Playback
 /** Returns `YES` if the session is employing volume normalization (that is, attempts to keep the 
  sound level of each track the same), otherwise `NO`.
  
- @warning *Important:* This property currently has no effect on iOS platforms.
+ @warning This property currently has no effect on iOS platforms.
  */
 @property (nonatomic, readwrite, getter=isUsingVolumeNormalization) BOOL usingVolumeNormalization;
 
@@ -466,18 +578,16 @@ Playback
  to the next track during normal playback.
  
  @param aTrack The track to preload.
- @param error An NSError pointer that will be filled with any error that occurs.
- @return Returns `YES` if loading started successfully, or `NO` if the track cannot be played.
+ @param block A block to be called when operation has successfully begun. The error parameter will be non-`nil` is an error occurred.
  */
--(BOOL)preloadTrackForPlayback:(SPTrack *)aTrack error:(NSError **)error;
+-(void)preloadTrackForPlayback:(SPTrack *)aTrack callback:(SPErrorableOperationCallback)block;
 
 /** Start playing the given track.
  
  @param aTrack The track to play.
- @param error An NSError pointer that will be filled with any error that occurs.
- @return Returns `YES` if playback started successfully, or `NO` if the track cannot be played.
+ @param block A block to be called when operation has successfully begun. The error parameter will be non-`nil` is an error occurred.
  */
--(BOOL)playTrack:(SPTrack *)aTrack error:(NSError **)error;
+-(void)playTrack:(SPTrack *)aTrack callback:(SPErrorableOperationCallback)block;
 
 /** Seek the current playback position to the given time. 
  
@@ -492,9 +602,6 @@ Playback
  */
 -(void)unloadPlayback;
 
-
-//Internal
--(void)addLoadingObject:(id)object;
 @end
 
 /** General delegate callbacks from SPSession. For playback-related callbacks, see SPSessionPlaybackDelegate. */
@@ -576,9 +683,16 @@ Playback
  */
 -(void)session:(SPSession *)aSession didEncounterNetworkError:(NSError *)error;
 
+/** Called when there is an error enountered when scrobbling plays to, for example, Last.fm.
+ 
+ @param aSession The session that encountered a problem. 
+ @param error An NSError object describing the failure.
+ */
+-(void)session:(SPSession *)aSession didEncounterScrobblingError:(NSError *)error;
+
 /** Called when a log-worthy message is generated by the Spotify service.
  
- @warning *Important:* This method will be called very frequently if implemented. Please
+ @warning This method will be called very frequently if implemented. Please
  refrain from mindlessly logging these to the console in a release application to aid the user's 
  sainity.
  
@@ -592,7 +706,7 @@ Playback
 /** Called when the session needs to present a view controller to allow the user to login, sign up
  or confirm Facebook access permissions.
  
- @warning *Important:* While this typically happens around login, it can happen at any point. When this method
+ @warning While this typically happens around login, it can happen at any point. When this method
  is called, your application should make sure it's in a state appropriate for displaying a login view.
  
  @param aSession The session needing to display UI.
@@ -636,14 +750,14 @@ Playback
  
  @deprecated
  
- @warning *Important:* This function is called from an internal session thread - you need to have 
+ @warning This function is called from an internal session thread - you need to have 
  proper synchronization!
  
- @warning *Important:* If this method is called with a frameCount of 0, an "audio discontinuity" has occurred - 
+ @warning If this method is called with a frameCount of 0, an "audio discontinuity" has occurred - 
  for example, the user has seeked playback to another part of the track. You should clear audio buffers and prepare
  for new audio.
  
- @warning *Important:* This function must never block. If your output buffers are full you must 
+ @warning This function must never block. If your output buffers are full you must 
  return 0 to signal that the library should retry delivery in a short while.
  
  @param aSession The session providing the audio data.
@@ -669,14 +783,14 @@ Playback
  
  See the SimplePlayback sample project for an example of how to implement audio playback.
  
- @warning *Important:* This function is called from an internal session thread - you need to have 
+ @warning This function is called from an internal session thread - you need to have 
  proper synchronization!
  
- @warning *Important:* If this method is called with a frameCount of 0, an "audio discontinuity" has occurred - 
+ @warning If this method is called with a frameCount of 0, an "audio discontinuity" has occurred - 
  for example, the user has seeked playback to another part of the track. You should clear audio buffers and prepare
  for new audio.
  
- @warning *Important:* This function must never block. If your output buffers are full you must 
+ @warning This function must never block. If your output buffers are full you must 
  return 0 to signal that the library should retry delivery in a short while.
  
  @param aSession The session providing the audio data.

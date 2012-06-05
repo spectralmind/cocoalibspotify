@@ -54,7 +54,7 @@
  
  The item is typically a track, artist, album or playlist.
  */
-@property (nonatomic, readonly, strong) id <SPPlaylistableItem> item;
+@property (nonatomic, readonly, strong) id <SPPlaylistableItem, SPAsyncLoading> item;
 
 ///----------------------------
 /// @name Metadata

@@ -54,6 +54,7 @@
 	
 	[SPSession initializeSharedSessionWithApplicationKey:[NSData dataWithBytes:&g_appkey length:g_appkey_size] 
 											   userAgent:@"com.spotify.SimplePlayer-iOS"
+										   loadingPolicy:SPAsyncLoadingManual
 												   error:nil];
 
 	self.playbackManager = [[SPPlaybackManager alloc] initWithPlaybackSession:[SPSession sharedSession]];
@@ -138,7 +139,7 @@
 	 See also applicationDidEnterBackground:.
 	 */
 	
-	[[SPSession sharedSession] logout];
+	[[SPSession sharedSession] logout:^{}];
 }
 
 #pragma mark -
@@ -150,33 +151,30 @@
 	if (self.trackURIField.text.length > 0) {
 		
 		NSURL *trackURL = [NSURL URLWithString:self.trackURIField.text];
-		SPTrack *track = [[SPSession sharedSession] trackForURL:trackURL];
+		[[SPSession sharedSession] trackForURL:trackURL callback:^(SPTrack *track) {
+			
+			if (track != nil) {
+				
+				[SPAsyncLoading waitUntilLoaded:track then:^(NSArray *tracks) {
+					[self.playbackManager playTrack:track callback:^(NSError *error) {
+						
+						if (error) {
+							UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Cannot Play Track"
+																			message:[error localizedDescription]
+																		   delegate:nil
+																  cancelButtonTitle:@"OK"
+																  otherButtonTitles:nil];
+							[alert show];
+						} else {
+							self.currentTrack = track;
+						}
+						
+					}];
+				}];
+			}
+		}];
 		
-		if (track != nil) {
-			
-			if (!track.isLoaded) {
-				// Since we're trying to play a brand new track that may not be loaded, 
-				// we may have to wait for a moment before playing. Tracks that are present 
-				// in the user's "library" (playlists, starred, inbox, etc) are automatically loaded
-				// on login. All this happens on an internal thread, so we'll just try again in a moment.
-				[self performSelector:@selector(playTrack:) withObject:sender afterDelay:0.1];
-				return;
-			}
-			
-			NSError *error = nil;
-			
-			if (![self.playbackManager playTrack:track error:&error]) {
-				UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Cannot Play Track"
-																message:[error localizedDescription]
-															   delegate:nil
-													  cancelButtonTitle:@"OK"
-													  otherButtonTitles:nil];
-				[alert show];
-			}
-			
-			self.currentTrack = track;
-			return;
-		}
+		return;
 	}
 	
 	UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Cannot Play Track"

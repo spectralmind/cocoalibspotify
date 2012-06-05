@@ -10,6 +10,7 @@
 		<string>Libraries</string>
 		<string>Frameworks</string>
 		<string>Testing</string>
+		<string>Tests</string>
 	</array>
 	<key>--logformat</key>
 	<integer>1</integer>

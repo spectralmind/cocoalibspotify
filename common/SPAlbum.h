@@ -42,7 +42,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @class SPImage;
 @class SPArtist;
 
-@interface SPAlbum : NSObject <SPPlaylistableItem>
+@interface SPAlbum : NSObject <SPPlaylistableItem, SPAsyncLoading>
 
 ///----------------------------
 /// @name Creating and Initializing Albums
@@ -52,6 +52,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
  This convenience method creates an SPAlbum object if one doesn't exist, or 
  returns a cached SPAlbum if one already exists for the given struct.
+ 
+@warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
  
  @param anAlbum The sp_album struct to create an SPAlbum for.
  @param aSession The SPSession the album should exist in.
@@ -64,20 +67,23 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This convenience method creates an SPAlbum object if one doesn't exist, or 
  returns a cached SPAlbum if one already exists for the given URL.
  
- @warning *Important:* If you pass in an invalid album URL (i.e., any URL not
+ @warning If you pass in an invalid album URL (i.e., any URL not
  starting `spotify:album:`, this method will return `nil`.
  
  @param aURL The album URL to create an SPAlbum for.
  @param aSession The SPSession the album should exist in.
- @return Returns the created SPAlbum object, or `nil` if given an invalid album URL. 
+ @param block Block to be called with the created SPAlbum object, or `nil` if given an invalid album URL. 
  */
-+(SPAlbum *)albumWithAlbumURL:(NSURL *)aURL inSession:(SPSession *)aSession;
++(void)albumWithAlbumURL:(NSURL *)aURL inSession:(SPSession *)aSession callback:(void (^)(SPAlbum *album))block;
 
 /** Initializes a new SPAlbum from the given opaque sp_album struct. 
  
- @warning *Important:* For better performance and built-in caching, it is recommended
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning For better performance and built-in caching, it is recommended
  you create SPAlbum objects using +[SPAlbum albumWithAlbumStruct:inSession:], 
- +[SPAlbum albumWithAlbumURL:inSession:] or the instance methods on SPSession.
+ +[SPAlbum albumWithAlbumURL:inSession:callback:] or the instance methods on SPSession.
  
  @param anAlbum The sp_album struct to create an SPAlbum for.
  @param aSession The SPSession the album should exist in.
@@ -91,7 +97,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning *Important:* This should only be used if you plan to directly use the 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning This should only be used if you plan to directly use the 
  C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
  API directly on items that have CocoaLibSpotify objects associated with them. 
  */
@@ -112,6 +121,18 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the album's cover image. Returns `nil` if the metadata isn't loaded yet, or if the album doesn't have a cover image. */
 @property (nonatomic, readonly, strong) SPImage *cover;
+
+/** Returns a thumbnail version of the album's cover image. Returns `nil` if the metadata isn't loaded yet, or if the album doesn't have a cover image. */
+@property (nonatomic, readonly, strong) SPImage *smallCover;
+
+/** Returns a large version of the album's cover image. Returns `nil` if the metadata isn't loaded yet, or if the album doesn't have a cover image. */
+@property (nonatomic, readonly, strong) SPImage *largeCover;
+
+/** Returns a largest available version of the album's cover image. Returns `nil` if the metadata isn't loaded yet, or if the album doesn't have a cover image. */
+@property (nonatomic, readonly, strong) SPImage *largestAvailableCover;
+
+/** Returns a smallest available version of the album's cover image. Returns `nil` if the metadata isn't loaded yet, or if the album doesn't have a cover image. */
+@property (nonatomic, readonly, strong) SPImage *smallestAvailableCover;
 
 /** Returns `YES` if the album is available in the logged-in user's region. */
 @property (nonatomic, readonly, getter=isAvailable) BOOL available;

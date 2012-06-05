@@ -13,8 +13,6 @@
 		500D520D1461569A0009B5FB /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 500D520B1461569A0009B5FB /* Credits.rtf */; };
 		500D52101461569A0009B5FB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 500D520F1461569A0009B5FB /* AppDelegate.m */; };
 		500D52131461569A0009B5FB /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 500D52111461569A0009B5FB /* MainMenu.xib */; };
-		500D522D146186320009B5FB /* SPCircularBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 500D522A146186320009B5FB /* SPCircularBuffer.m */; };
-		500D522E146186320009B5FB /* SPPlaybackManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 500D522C146186320009B5FB /* SPPlaybackManager.m */; };
 		500D5238146186710009B5FB /* CocoaLibSpotify.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 500D52371461863F0009B5FB /* CocoaLibSpotify.framework */; };
 		500D523C1461868A0009B5FB /* CocoaLibSpotify.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 500D52371461863F0009B5FB /* CocoaLibSpotify.framework */; };
 		500D5244146187D80009B5FB /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 500D5242146187D80009B5FB /* AudioUnit.framework */; };
@@ -37,6 +35,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 503D630E13258041007772CA;
 			remoteInfo = CocoaLibSpotify;
+		};
+		50DCFC94156BAED30090723A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 500D522F1461863F0009B5FB /* CocoaLibSpotify Mac Framework.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 504E4934155AA85400E1C0F7;
+			remoteInfo = CocoaLSTests;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -67,10 +72,6 @@
 		500D520E1461569A0009B5FB /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		500D520F1461569A0009B5FB /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		500D52121461569A0009B5FB /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		500D5229146186320009B5FB /* SPCircularBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPCircularBuffer.h; sourceTree = "<group>"; };
-		500D522A146186320009B5FB /* SPCircularBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPCircularBuffer.m; sourceTree = "<group>"; };
-		500D522B146186320009B5FB /* SPPlaybackManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPPlaybackManager.h; sourceTree = "<group>"; };
-		500D522C146186320009B5FB /* SPPlaybackManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPPlaybackManager.m; sourceTree = "<group>"; };
 		500D522F1461863F0009B5FB /* CocoaLibSpotify Mac Framework.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "CocoaLibSpotify Mac Framework.xcodeproj"; path = "../../CocoaLibSpotify Mac Framework.xcodeproj"; sourceTree = "<group>"; };
 		500D5242146187D80009B5FB /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		500D5243146187D80009B5FB /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -144,7 +145,6 @@
 				5072D67B1461928B00F6B4A5 /* SPPlaylistItem+SPPlaylistItemOfflineExtensions.m */,
 				5072D67D146194CA00F6B4A5 /* SPPlaylist+SPPlaylistOfflineExtensions.h */,
 				5072D67E146194CA00F6B4A5 /* SPPlaylist+SPPlaylistOfflineExtensions.m */,
-				500D5228146186320009B5FB /* Playback Helper Classes */,
 				500D52031461569A0009B5FB /* Supporting Files */,
 			);
 			path = "Offline Playlists";
@@ -162,22 +162,11 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		500D5228146186320009B5FB /* Playback Helper Classes */ = {
-			isa = PBXGroup;
-			children = (
-				500D5229146186320009B5FB /* SPCircularBuffer.h */,
-				500D522A146186320009B5FB /* SPCircularBuffer.m */,
-				500D522B146186320009B5FB /* SPPlaybackManager.h */,
-				500D522C146186320009B5FB /* SPPlaybackManager.m */,
-			);
-			name = "Playback Helper Classes";
-			path = "../../../../Playback Helper Classes";
-			sourceTree = "<group>";
-		};
 		500D52301461863F0009B5FB /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				500D52371461863F0009B5FB /* CocoaLibSpotify.framework */,
+				50DCFC95156BAED30090723A /* CocoaLibSpotify Test Container.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -243,6 +232,14 @@
 			remoteRef = 500D52361461863F0009B5FB /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		50DCFC95156BAED30090723A /* CocoaLibSpotify Test Container.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			name = "CocoaLibSpotify Test Container.app";
+			path = CocoaLSTests.app;
+			remoteRef = 50DCFC94156BAED30090723A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -265,8 +262,6 @@
 			files = (
 				500D52091461569A0009B5FB /* main.m in Sources */,
 				500D52101461569A0009B5FB /* AppDelegate.m in Sources */,
-				500D522D146186320009B5FB /* SPCircularBuffer.m in Sources */,
-				500D522E146186320009B5FB /* SPPlaybackManager.m in Sources */,
 				5072D67C1461928B00F6B4A5 /* SPPlaylistItem+SPPlaylistItemOfflineExtensions.m in Sources */,
 				5072D67F146194CA00F6B4A5 /* SPPlaylist+SPPlaylistOfflineExtensions.m in Sources */,
 			);

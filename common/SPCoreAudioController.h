@@ -83,7 +83,7 @@
  
  This method will be called whenever the audio pipeline needs to be (re)built.
 
- @warning *Important:* If you override this method and connect the nodes yourself, do not call the `super`
+ @warning If you override this method and connect the nodes yourself, do not call the `super`
  implementation. You can, however, conditionally decide whether to customise the queue and call `super`
  if you want the default behaviour.
  

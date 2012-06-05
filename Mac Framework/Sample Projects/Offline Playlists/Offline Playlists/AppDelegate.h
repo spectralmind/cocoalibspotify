@@ -27,7 +27,6 @@
 
 #import <Cocoa/Cocoa.h>
 #import <CocoaLibSpotify/CocoaLibSpotify.h>
-#import "SPPlaybackManager.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, SPSessionDelegate>
 

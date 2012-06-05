@@ -48,11 +48,19 @@
 	
 	<option value="//api/name/cover">&nbsp;&nbsp;&nbsp;&nbsp;cover</option>
 	
+	<option value="//api/name/largeCover">&nbsp;&nbsp;&nbsp;&nbsp;largeCover</option>
+	
+	<option value="//api/name/largestAvailableCover">&nbsp;&nbsp;&nbsp;&nbsp;largestAvailableCover</option>
+	
 	<option value="//api/name/loaded">&nbsp;&nbsp;&nbsp;&nbsp;loaded</option>
 	
 	<option value="//api/name/name">&nbsp;&nbsp;&nbsp;&nbsp;name</option>
 	
 	<option value="//api/name/session">&nbsp;&nbsp;&nbsp;&nbsp;session</option>
+	
+	<option value="//api/name/smallCover">&nbsp;&nbsp;&nbsp;&nbsp;smallCover</option>
+	
+	<option value="//api/name/smallestAvailableCover">&nbsp;&nbsp;&nbsp;&nbsp;smallestAvailableCover</option>
 	
 	<option value="//api/name/spotifyURL">&nbsp;&nbsp;&nbsp;&nbsp;spotifyURL</option>
 	
@@ -67,7 +75,7 @@
 	
 	<option value="//api/name/albumWithAlbumStruct:inSession:">&nbsp;&nbsp;&nbsp;&nbsp;+ albumWithAlbumStruct:inSession:</option>
 	
-	<option value="//api/name/albumWithAlbumURL:inSession:">&nbsp;&nbsp;&nbsp;&nbsp;+ albumWithAlbumURL:inSession:</option>
+	<option value="//api/name/albumWithAlbumURL:inSession:callback:">&nbsp;&nbsp;&nbsp;&nbsp;+ albumWithAlbumURL:inSession:callback:</option>
 	
 	
 	
@@ -114,11 +122,19 @@
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/cover">cover</a></span></li>
 	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/largeCover">largeCover</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/largestAvailableCover">largestAvailableCover</a></span></li>
+	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/loaded">loaded</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/name">name</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/session">session</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/smallCover">smallCover</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/smallestAvailableCover">smallestAvailableCover</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/spotifyURL">spotifyURL</a></span></li>
 	
@@ -134,7 +150,7 @@
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/albumWithAlbumStruct:inSession:">albumWithAlbumStruct:inSession:</a></span></li>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/albumWithAlbumURL:inSession:">albumWithAlbumURL:inSession:</a></span></li>
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/albumWithAlbumURL:inSession:callback:">albumWithAlbumURL:inSession:callback:</a></span></li>
 	
 </ul></li>
 
@@ -171,7 +187,7 @@
 	<td class="specification-value">NSObject</td>
 </tr><tr>
 	<td class="specification-title">Conforms to</td>
-	<td class="specification-value">SPPlaylistableItem</td>
+	<td class="specification-value"><a href="../Protocols/SPAsyncLoading.html">SPAsyncLoading</a><br /><a href="../Protocols/SPPlaylistableItem.html">SPPlaylistableItem</a></td>
 </tr><tr>
 	<td class="specification-title">Declared in</td>
 	<td class="specification-value">SPAlbum.h<br />SPAlbum.m</td>
@@ -211,7 +227,7 @@
 	
 </li><li>
 	<span class="tooltip">
-		<code><a href="#//api/name/albumWithAlbumURL:inSession:">+&nbsp;albumWithAlbumURL:inSession:</a></code>
+		<code><a href="#//api/name/albumWithAlbumURL:inSession:callback:">+&nbsp;albumWithAlbumURL:inSession:callback:</a></code>
 		<span class="tooltip"><p>Creates an SPAlbum from the given Spotify <a href="#//api/name/album">album</a> URL.</p></span>
 	</span>
 	
@@ -271,6 +287,34 @@
 	<span class="tooltip">
 		<code><a href="#//api/name/cover">&nbsp;&nbsp;cover</a></code>
 		<span class="tooltip"><p>Returns the album&rsquo;s cover image. Returns <code>nil</code> if the metadata isn&rsquo;t <a href="#//api/name/loaded">loaded</a> yet, or if the <a href="#//api/name/album">album</a> doesn&rsquo;t have a cover image.</p></span>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/smallCover">&nbsp;&nbsp;smallCover</a></code>
+		<span class="tooltip"><p>Returns a thumbnail version of the album&rsquo;s <a href="#//api/name/cover">cover</a> image. Returns <code>nil</code> if the metadata isn&rsquo;t <a href="#//api/name/loaded">loaded</a> yet, or if the <a href="#//api/name/album">album</a> doesn&rsquo;t have a <a href="#//api/name/cover">cover</a> image.</p></span>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/largeCover">&nbsp;&nbsp;largeCover</a></code>
+		<span class="tooltip"><p>Returns a large version of the album&rsquo;s <a href="#//api/name/cover">cover</a> image. Returns <code>nil</code> if the metadata isn&rsquo;t <a href="#//api/name/loaded">loaded</a> yet, or if the <a href="#//api/name/album">album</a> doesn&rsquo;t have a <a href="#//api/name/cover">cover</a> image.</p></span>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/largestAvailableCover">&nbsp;&nbsp;largestAvailableCover</a></code>
+		<span class="tooltip"><p>Returns a largest <a href="#//api/name/available">available</a> version of the album&rsquo;s <a href="#//api/name/cover">cover</a> image. Returns <code>nil</code> if the metadata isn&rsquo;t <a href="#//api/name/loaded">loaded</a> yet, or if the <a href="#//api/name/album">album</a> doesn&rsquo;t have a <a href="#//api/name/cover">cover</a> image.</p></span>
+	</span>
+	<span class="task-item-suffix">property</span>
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/smallestAvailableCover">&nbsp;&nbsp;smallestAvailableCover</a></code>
+		<span class="tooltip"><p>Returns a smallest <a href="#//api/name/available">available</a> version of the album&rsquo;s <a href="#//api/name/cover">cover</a> image. Returns <code>nil</code> if the metadata isn&rsquo;t <a href="#//api/name/loaded">loaded</a> yet, or if the <a href="#//api/name/album">album</a> doesn&rsquo;t have a <a href="#//api/name/cover">cover</a> image.</p></span>
 	</span>
 	<span class="task-item-suffix">property</span>
 	
@@ -344,7 +388,8 @@
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> This should only be used if you plan to directly use the
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div><div class="warning"><p><strong>Warning:</strong> This should only be used if you plan to directly use the
 C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
 API directly on items that have CocoaLibSpotify objects associated with them.</p></div>
 	</div>
@@ -466,6 +511,74 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 </div>
 						
 						<div class="section-method">
+	<a name="//api/name/largeCover" title="largeCover"></a>
+	<h3 class="subsubtitle method-title">largeCover</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns a large version of the album&rsquo;s <a href="#//api/name/cover">cover</a> image. Returns <code>nil</code> if the metadata isn&rsquo;t <a href="#//api/name/loaded">loaded</a> yet, or if the <a href="#//api/name/album">album</a> doesn&rsquo;t have a <a href="#//api/name/cover">cover</a> image.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, strong) SPImage *largeCover</code></div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPAlbum.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/largestAvailableCover" title="largestAvailableCover"></a>
+	<h3 class="subsubtitle method-title">largestAvailableCover</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns a largest <a href="#//api/name/available">available</a> version of the album&rsquo;s <a href="#//api/name/cover">cover</a> image. Returns <code>nil</code> if the metadata isn&rsquo;t <a href="#//api/name/loaded">loaded</a> yet, or if the <a href="#//api/name/album">album</a> doesn&rsquo;t have a <a href="#//api/name/cover">cover</a> image.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, strong) SPImage *largestAvailableCover</code></div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPAlbum.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
 	<a name="//api/name/loaded" title="loaded"></a>
 	<h3 class="subsubtitle method-title">loaded</h3>
 	
@@ -545,6 +658,74 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 	
 	
 	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, strong) SPSession *session</code></div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPAlbum.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/smallCover" title="smallCover"></a>
+	<h3 class="subsubtitle method-title">smallCover</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns a thumbnail version of the album&rsquo;s <a href="#//api/name/cover">cover</a> image. Returns <code>nil</code> if the metadata isn&rsquo;t <a href="#//api/name/loaded">loaded</a> yet, or if the <a href="#//api/name/album">album</a> doesn&rsquo;t have a <a href="#//api/name/cover">cover</a> image.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, strong) SPImage *smallCover</code></div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPAlbum.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/smallestAvailableCover" title="smallestAvailableCover"></a>
+	<h3 class="subsubtitle method-title">smallestAvailableCover</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Returns a smallest <a href="#//api/name/available">available</a> version of the album&rsquo;s <a href="#//api/name/cover">cover</a> image. Returns <code>nil</code> if the metadata isn&rsquo;t <a href="#//api/name/loaded">loaded</a> yet, or if the <a href="#//api/name/album">album</a> doesn&rsquo;t have a <a href="#//api/name/cover">cover</a> image.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readonly, strong) SPImage *smallestAvailableCover</code></div>
 	
 	
 	
@@ -737,7 +918,8 @@ Unknown type.</p>
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This convenience method creates an SPAlbum object if one doesn&rsquo;t exist, or
-returns a cached SPAlbum if one already exists for the given struct.</p>
+returns a cached SPAlbum if one already exists for the given struct.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div>
 	</div>
 	
 	
@@ -755,8 +937,8 @@ returns a cached SPAlbum if one already exists for the given struct.</p>
 </div>
 						
 						<div class="section-method">
-	<a name="//api/name/albumWithAlbumURL:inSession:" title="albumWithAlbumURL:inSession:"></a>
-	<h3 class="subsubtitle method-title">albumWithAlbumURL:inSession:</h3>
+	<a name="//api/name/albumWithAlbumURL:inSession:callback:" title="albumWithAlbumURL:inSession:callback:"></a>
+	<h3 class="subsubtitle method-title">albumWithAlbumURL:inSession:callback:</h3>
 	
 	
 	
@@ -765,7 +947,7 @@ returns a cached SPAlbum if one already exists for the given struct.</p>
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>+ (SPAlbum *)albumWithAlbumURL:(NSURL *)<em>aURL</em> inSession:(SPSession *)<em>aSession</em></code></div>
+	<div class="method-subsection method-declaration"><code>+ (void)albumWithAlbumURL:(NSURL *)<em>aURL</em> inSession:(SPSession *)<em>aSession</em> callback:(void ( ^ ) ( SPAlbum *album ))<em>block</em></code></div>
 	
 	
 	<div class="method-subsection arguments-section parameters">
@@ -781,14 +963,14 @@ returns a cached SPAlbum if one already exists for the given struct.</p>
 			<dd><p>The <a href="../Classes/SPSession.html">SPSession</a> the <a href="#//api/name/album">album</a> should exist in.</p></dd>
 		</dl>
 		
+		<dl class="argument-def parameter-def">
+			<dt><em>block</em></dt>
+			<dd><p>Block to be called with the created SPAlbum object, or <code>nil</code> if given an invalid <a href="#//api/name/album">album</a> URL.</p></dd>
+		</dl>
+		
 	</div>
 	
 	
-	
-	<div class="method-subsection return">
-		<h4 class="method-subtitle parameter-title">Return Value</h4>
-		<p>Returns the created SPAlbum object, or <code>nil</code> if given an invalid <a href="#//api/name/album">album</a> URL.</p>
-	</div>
 	
 	
 	
@@ -797,7 +979,7 @@ returns a cached SPAlbum if one already exists for the given struct.</p>
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This convenience method creates an SPAlbum object if one doesn&rsquo;t exist, or
-returns a cached SPAlbum if one already exists for the given URL.</p><div class="warning"><p><strong>Warning:</strong> <em>Important:</em> If you pass in an invalid <a href="#//api/name/album">album</a> URL (i.e., any URL not
+returns a cached SPAlbum if one already exists for the given URL.</p><div class="warning"><p><strong>Warning:</strong> If you pass in an invalid <a href="#//api/name/album">album</a> URL (i.e., any URL not
 starting <code>spotify:album:</code>, this method will return <code>nil</code>.</p></div>
 	</div>
 	
@@ -865,9 +1047,10 @@ starting <code>spotify:album:</code>, this method will return <code>nil</code>.<
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> For better performance and built-in caching, it is recommended
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div><div class="warning"><p><strong>Warning:</strong> For better performance and built-in caching, it is recommended
 you create SPAlbum objects using <a href="#//api/name/albumWithAlbumStruct:inSession:">[SPAlbum albumWithAlbumStruct:inSession:]</a>,
-<a href="#//api/name/albumWithAlbumURL:inSession:">[SPAlbum albumWithAlbumURL:inSession:]</a> or the instance methods on <a href="../Classes/SPSession.html">SPSession</a>.</p></div>
+<a href="#//api/name/albumWithAlbumURL:inSession:callback:">[SPAlbum albumWithAlbumURL:inSession:callback:]</a> or the instance methods on <a href="../Classes/SPSession.html">SPSession</a>.</p></div>
 	</div>
 	
 	
@@ -897,7 +1080,7 @@ you create SPAlbum objects using <a href="#//api/name/albumWithAlbumStruct:inSes
 				<div id="footer">
 					<hr />
 					<div class="footer-copyright">
-						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-04-02)</span><br />
+						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-05-23)</span><br />
 						
 						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.0.5 (build 789)</a>.</span></p>
 						

@@ -1,3 +1,19 @@
+CocoaLibSpotify 2.0 for libspotify 12, released May 23rd 2012
+=============================================================
+
+* Huge re-engineering of CocoaLibSpotify to run libspotify in its own background thread. This has brought on a large set of API changes, and you must now be aware of potential threading issues. See the project's README file for more information.
+
+* Added small and large cover images to `SPAlbum`, as well as `smallestAvailableCover` and `largestAvailableCover` convenience methods.
+
+* Added `fetchLoginUserName:` method to `SPSession` to get the username used to log into the current session. This also fixes `[SPSessionDelegate -session:didGenerateLoginCredentials:forUserName]` giving an incorrect username for users logging in with Facebook details.
+
+* Added the ability to control scrobbling to various social services, including Last.fm and the user's connected Facebook account.
+
+* Added `SPAsyncLoading` and `SPDelayableAsyncLoading`, a new way of working with objects that load asynchonously. If you pass `SPAsyncLoadingManual` to `[SPSession -initWithApplicationKey:userAgent:loadingPolicy:error:]`, anything conforming to `SPDelayableAsyncLoading` (such as user playlists, etc) won't be loaded until you want them to load. See the README file and sample projects for examples.
+
+* Added a number of unit tests.
+
+
 CocoaLibSpotify for libspotify 11, released March 27th 2012
 ===========================================================
 

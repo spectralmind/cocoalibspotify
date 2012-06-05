@@ -40,7 +40,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 @class SPSession;
 
-@interface SPArtist : NSObject <SPPlaylistableItem>
+@interface SPArtist : NSObject <SPPlaylistableItem, SPAsyncLoading>
 
 ///----------------------------
 /// @name Creating and Initializing Artists
@@ -50,6 +50,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
  This convenience method creates an SPArtist object if one doesn't exist, or 
  returns a cached SPArtist if one already exists for the given struct.
+ 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
  
  @param anArtist The sp_artist struct to create an SPArtist for.
  @param aSession The session to create the artist in.
@@ -62,20 +65,23 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This convenience method creates an SPArtist object if one doesn't exist, or 
  returns a cached SPArtist if one already exists for the given URL.
  
- @warning *Important:* If you pass in an invalid artist URL (i.e., any URL not
+ @warning If you pass in an invalid artist URL (i.e., any URL not
  starting `spotify:artist:`, this method will return `nil`.
  
  @param aURL The artist URL to create an SPArtist for.
  @param aSession The session to create the artist in.
- @return Returns the created SPArtist object, or `nil` if given an invalid artist URL. 
+ @param block The block to be called with the created SPArtist object, or `nil` if given an invalid artist URL. 
  */
-+(SPArtist *)artistWithArtistURL:(NSURL *)aURL inSession:(SPSession *)aSession;
++(void)artistWithArtistURL:(NSURL *)aURL inSession:(SPSession *)aSession callback:(void (^)(SPArtist *artist))block;
 
 /** Initializes a new SPArtist from the given opaque sp_artist struct. 
  
- @warning *Important:* For better performance and built-in caching, it is recommended
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning For better performance and built-in caching, it is recommended
  you create SPArtist objects using +[SPArtist artistWithArtistStruct:inSession:], 
- +[SPArtist artistWithArtistURL:inSession:] or the instance methods on SPSession.
+ +[SPArtist artistWithArtistURL:inSession:callback:] or the instance methods on SPSession.
  
  @param anArtist The sp_artist struct to create an SPArtist for.
  @param aSession The session to create the artist in.
@@ -89,7 +95,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning *Important:* This should only be used if you plan to directly use the 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning This should only be used if you plan to directly use the 
  C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
  API directly on items that have CocoaLibSpotify objects associated with them. 
  */
@@ -104,5 +113,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the Spotify URI of the track, for example: `spotify:artist:12EtLdLfJ41vUOoVzPZIUy` */
 @property (nonatomic, readonly, copy) NSURL *spotifyURL;
+
+/** Returns `YES` if the artist metadata has finished loading. */ 
+@property (nonatomic, readonly, getter=isLoaded) BOOL loaded;
 
 @end

@@ -44,7 +44,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @class SPUser;
 @class SPSession;
 
-@interface SPToplist : NSObject
+@interface SPToplist : NSObject <SPAsyncLoading>
 
 ///----------------------------
 /// @name Creating and Initializing Toplists

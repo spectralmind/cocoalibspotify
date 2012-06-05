@@ -41,9 +41,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @class SPAlbum;
 @class SPSession;
 
-@interface SPTrack : NSObject <SPPlaylistableItem> {
+@interface SPTrack : NSObject <SPPlaylistableItem, SPAsyncLoading> {
 	BOOL _starred;
-	sp_track *track;
 }
 
 
@@ -56,6 +55,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This convenience method creates an SPTrack object if one doesn't exist, or 
  returns a cached SPTrack if one already exists for the given struct.
  
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
  @param spTrack The sp_track struct to create an SPTrack for.
  @param aSession The SPSession the track should exist in.
  @return Returns the created SPTrack object. 
@@ -67,20 +69,23 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This convenience method creates an SPTrack object if one doesn't exist, or 
  returns a cached SPTrack if one already exists for the given URL.
  
- @warning *Important:* If you pass in an invalid track URL (i.e., any URL not
+ @warning If you pass in an invalid track URL (i.e., any URL not
  starting `spotify:track:`, this method will return `nil`.
  
  @param trackURL The track URL to create an SPTrack for.
  @param aSession The SPSession the track should exist in.
- @return Returns the created SPTrack object, or `nil` if given an invalid track URL. 
+ @param block The block to be called with the created SPTrack object, or `nil` if given an invalid track URL. 
  */
-+(SPTrack *)trackForTrackURL:(NSURL *)trackURL inSession:(SPSession *)aSession;
++(void)trackForTrackURL:(NSURL *)trackURL inSession:(SPSession *)aSession callback:(void (^)(SPTrack *track))block;
 
 /** Initializes a new SPTrack from the given opaque sp_track struct. 
  
-@warning *Important:* For better performance and built-in caching, it is recommended
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+@warning For better performance and built-in caching, it is recommended
  you create SPTrack objects using +[SPTrack trackForTrackStruct:inSession:], 
- +[SPTrack trackForTrackURL:inSession:] or the instance methods on SPSession.
+ +[SPTrack trackForTrackURL:inSession:callback:] or the instance methods on SPSession.
  
  @param tr The sp_track struct to create an SPTrack for.
  @param aSession The SPSession the track should exist in.
@@ -131,7 +136,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning *Important:* This should only be used if you plan to directly use the 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning This should only be used if you plan to directly use the 
  C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
  API directly on items that have CocoaLibSpotify objects associated with them. 
  */

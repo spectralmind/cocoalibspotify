@@ -51,6 +51,10 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @property (nonatomic, readwrite) BOOL artistsLoaded;
 @property (nonatomic, readwrite) BOOL albumsLoaded;
 
+@property (nonatomic, readwrite) sp_toplistbrowse *albumBrowseOperation;
+@property (nonatomic, readwrite) sp_toplistbrowse *artistBrowseOperation;
+@property (nonatomic, readwrite) sp_toplistbrowse *trackBrowseOperation;
+
 @property (nonatomic, readwrite, copy) NSError *loadError;
 
 @end
@@ -62,16 +66,12 @@ void toplistbrowse_tracks_complete(sp_toplistbrowse *result, void *userdata) {
 	
 		SPToplist *toplist = (__bridge_transfer SPToplist *)userdata;
 		
-		toplist.tracksLoaded = sp_toplistbrowse_is_loaded(result);
+		BOOL tracksAreLoaded = sp_toplistbrowse_is_loaded(result);
 		sp_error errorCode = sp_toplistbrowse_error(result);
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSArray *newTracks = nil;
 		
-		if (errorCode != SP_ERROR_OK) {
-			toplist.loadError = [NSError spotifyErrorWithCode:errorCode];
-		} else {
-			toplist.loadError = nil;
-		}
-		
-		if (toplist.tracksLoaded) {
+		if (tracksAreLoaded) {
 			
 			int trackCount = sp_toplistbrowse_num_tracks(result);
 			NSMutableArray *tracks = [NSMutableArray arrayWithCapacity:trackCount];
@@ -82,9 +82,14 @@ void toplistbrowse_tracks_complete(sp_toplistbrowse *result, void *userdata) {
 				}
 			}
 			
-			toplist.tracks = [NSArray arrayWithArray:tracks];
+			newTracks = [NSArray arrayWithArray:tracks];
 		}
-	
+		
+		dispatch_async(dispatch_get_main_queue(), ^{
+			toplist.tracksLoaded = tracksAreLoaded;
+			toplist.loadError = error;
+			toplist.tracks = newTracks;
+		});
 	}
 }
 
@@ -95,16 +100,12 @@ void toplistbrowse_artists_complete(sp_toplistbrowse *result, void *userdata) {
 	
 		SPToplist *toplist = (__bridge_transfer SPToplist *)userdata;
 		
-		toplist.artistsLoaded = sp_toplistbrowse_is_loaded(result);
+		BOOL artistsAreLoaded = sp_toplistbrowse_is_loaded(result);
 		sp_error errorCode = sp_toplistbrowse_error(result);
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSArray *newArtists = nil;
 		
-		if (errorCode != SP_ERROR_OK) {
-			toplist.loadError = [NSError spotifyErrorWithCode:errorCode];
-		} else {
-			toplist.loadError = nil;
-		}
-		
-		if (toplist.artistsLoaded) {
+		if (artistsAreLoaded) {
 			
 			int artistCount = sp_toplistbrowse_num_artists(result);
 			NSMutableArray *artists = [NSMutableArray arrayWithCapacity:artistCount];
@@ -115,8 +116,14 @@ void toplistbrowse_artists_complete(sp_toplistbrowse *result, void *userdata) {
 				}
 			}
 			
-			toplist.artists = [NSArray arrayWithArray:artists];
+			newArtists = [NSArray arrayWithArray:artists];
 		}
+		
+		dispatch_async(dispatch_get_main_queue(), ^{
+			toplist.artistsLoaded = artistsAreLoaded;
+			toplist.loadError = error;
+			toplist.artists = newArtists;
+		});
 	}
 }
 
@@ -127,16 +134,12 @@ void toplistbrowse_albums_complete(sp_toplistbrowse *result, void *userdata) {
 	
 		SPToplist *toplist = (__bridge_transfer SPToplist *)userdata;
 		
-		toplist.albumsLoaded = sp_toplistbrowse_is_loaded(result);
+		BOOL albumsAreLoaded = sp_toplistbrowse_is_loaded(result);
 		sp_error errorCode = sp_toplistbrowse_error(result);
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSArray *newAlbums = nil;
 		
-		if (errorCode != SP_ERROR_OK) {
-			toplist.loadError = [NSError spotifyErrorWithCode:errorCode];
-		} else {
-			toplist.loadError = nil;
-		}
-		
-		if (toplist.albumsLoaded) {
+		if (albumsAreLoaded) {
 			
 			int albumCount = sp_toplistbrowse_num_albums(result);
 			NSMutableArray *albums = [NSMutableArray arrayWithCapacity:albumCount];
@@ -147,16 +150,18 @@ void toplistbrowse_albums_complete(sp_toplistbrowse *result, void *userdata) {
 				}
 			}
 			
-			toplist.albums = [NSArray arrayWithArray:albums];
+			newAlbums = [NSArray arrayWithArray:albums];
 		}
+		
+		dispatch_async(dispatch_get_main_queue(), ^{
+			toplist.albumsLoaded = albumsAreLoaded;
+			toplist.loadError = error;
+			toplist.albums = newAlbums;
+		});
 	}
 }
 
-@implementation SPToplist {
-	sp_toplistbrowse *albumBrowseOperation;
-	sp_toplistbrowse *artistBrowseOperation;
-	sp_toplistbrowse *trackBrowseOperation;
-}
+@implementation SPToplist
 
 +(SPToplist *)globalToplistInSession:(SPSession *)aSession {
 	return [[SPToplist alloc] initLocaleToplistWithLocale:nil 
@@ -186,36 +191,40 @@ void toplistbrowse_albums_complete(sp_toplistbrowse *result, void *userdata) {
 		self.username = nil;
 		self.session = aSession;
 		
-		sp_toplistregion region = SP_TOPLIST_REGION_EVERYWHERE;
-	
-		if (self.locale != nil) {
-			NSString *countryCode = [self.locale objectForKey:NSLocaleCountryCode];
-			if ([countryCode length] == 2) {
-				const char *countryCodeChars = [countryCode UTF8String];
-				region = SP_TOPLIST_REGION(countryCodeChars[0], countryCodeChars[1]);
+		dispatch_async([SPSession libSpotifyQueue], ^{
+			
+			sp_toplistregion region = SP_TOPLIST_REGION_EVERYWHERE;
+			
+			if (self.locale != nil) {
+				NSString *countryCode = [self.locale objectForKey:NSLocaleCountryCode];
+				if ([countryCode length] == 2) {
+					const char *countryCodeChars = [countryCode UTF8String];
+					region = SP_TOPLIST_REGION(countryCodeChars[0], countryCodeChars[1]);
+				}
 			}
-		}
+			
+			self.trackBrowseOperation = sp_toplistbrowse_create(aSession.session,
+																SP_TOPLIST_TYPE_TRACKS,
+																region, 
+																NULL,
+																&toplistbrowse_tracks_complete, 
+																(__bridge_retained void *)(self));
+			
+			self.artistBrowseOperation = sp_toplistbrowse_create(aSession.session,
+																 SP_TOPLIST_TYPE_ARTISTS,
+																 region, 
+																 NULL,
+																 &toplistbrowse_artists_complete, 
+																 (__bridge_retained void *)(self));
+			
+			self.albumBrowseOperation = sp_toplistbrowse_create(aSession.session,
+																SP_TOPLIST_TYPE_ALBUMS,
+																region, 
+																NULL,
+																&toplistbrowse_albums_complete, 
+																(__bridge_retained void *)(self));
+		});
 		
-		trackBrowseOperation = sp_toplistbrowse_create(self.session.session,
-													   SP_TOPLIST_TYPE_TRACKS,
-													   region, 
-													   NULL,
-													   &toplistbrowse_tracks_complete, 
-													   (__bridge_retained void *)(self));
-		
-		artistBrowseOperation = sp_toplistbrowse_create(self.session.session,
-													   SP_TOPLIST_TYPE_ARTISTS,
-													   region, 
-													   NULL,
-													   &toplistbrowse_artists_complete, 
-													   (__bridge_retained void *)(self));
-		
-		albumBrowseOperation = sp_toplistbrowse_create(self.session.session,
-													   SP_TOPLIST_TYPE_ALBUMS,
-													   region, 
-													   NULL,
-													   &toplistbrowse_albums_complete, 
-													   (__bridge_retained void *)(self));
 		return self;
 	}
 	
@@ -230,28 +239,32 @@ void toplistbrowse_albums_complete(sp_toplistbrowse *result, void *userdata) {
 		self.locale = nil;
 		self.username = user;
 		self.session = aSession;
-		sp_toplistregion region = SP_TOPLIST_REGION_USER;
 		
-		trackBrowseOperation = sp_toplistbrowse_create(self.session.session,
-													   SP_TOPLIST_TYPE_TRACKS,
-													   region, 
-													   [self.username UTF8String],
-													   &toplistbrowse_tracks_complete, 
-													   (__bridge_retained void *)(self));
-		
-		artistBrowseOperation = sp_toplistbrowse_create(self.session.session,
-														SP_TOPLIST_TYPE_ARTISTS,
-														region, 
-														[self.username UTF8String],
-														&toplistbrowse_artists_complete, 
-														(__bridge_retained void *)(self));
-		
-		albumBrowseOperation = sp_toplistbrowse_create(self.session.session,
-													   SP_TOPLIST_TYPE_ALBUMS,
-													   region, 
-													   [self.username UTF8String],
-													   &toplistbrowse_albums_complete, 
-													   (__bridge_retained void *)(self));
+		dispatch_async([SPSession libSpotifyQueue], ^{
+			
+			sp_toplistregion region = SP_TOPLIST_REGION_USER;
+			
+			self.trackBrowseOperation = sp_toplistbrowse_create(aSession.session,
+																SP_TOPLIST_TYPE_TRACKS,
+																region, 
+																[user UTF8String],
+																&toplistbrowse_tracks_complete, 
+																(__bridge_retained void *)(self));
+			
+			self.artistBrowseOperation = sp_toplistbrowse_create(aSession.session,
+																 SP_TOPLIST_TYPE_ARTISTS,
+																 region, 
+																 [user UTF8String],
+																 &toplistbrowse_artists_complete, 
+																 (__bridge_retained void *)(self));
+			
+			self.albumBrowseOperation = sp_toplistbrowse_create(aSession.session,
+																SP_TOPLIST_TYPE_ALBUMS,
+																region, 
+																[user UTF8String],
+																&toplistbrowse_albums_complete, 
+																(__bridge_retained void *)(self));
+		});
 		
 		return self;
 	}
@@ -279,6 +292,31 @@ void toplistbrowse_albums_complete(sp_toplistbrowse *result, void *userdata) {
 @synthesize artistsLoaded;
 @synthesize loadError;
 
+@synthesize albumBrowseOperation = _albumBrowseOperation;
+@synthesize artistBrowseOperation = _artistBrowseOperation;
+@synthesize trackBrowseOperation = _trackBrowseOperation;
+
+-(sp_toplistbrowse *)albumBrowseOperation {
+#if DEBUG
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+#endif
+	return _albumBrowseOperation;
+}
+
+-(sp_toplistbrowse *)artistBrowseOperation {
+#if DEBUG
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+#endif
+	return _artistBrowseOperation;
+}
+
+-(sp_toplistbrowse *)trackBrowseOperation {
+#if DEBUG
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+#endif
+	return _trackBrowseOperation;
+}
+
 +(NSSet *)keyPathsForValuesAffectingIsLoaded {
 	return [NSSet setWithObjects:@"tracksLoaded", @"albumsLoaded", @"artistsLoaded", nil];
 }
@@ -289,15 +327,18 @@ void toplistbrowse_albums_complete(sp_toplistbrowse *result, void *userdata) {
 
 - (void)dealloc {
 	
-	if (artistBrowseOperation != NULL)
-		sp_toplistbrowse_release(artistBrowseOperation);
+	sp_toplistbrowse *outgoing_artistbrowse = _artistBrowseOperation;
+	_artistBrowseOperation = NULL;
+	sp_toplistbrowse *outgoing_albumbrowse = _albumBrowseOperation;
+	_albumBrowseOperation = NULL;
+	sp_toplistbrowse *outgoing_trackbrowse = _trackBrowseOperation;
+	_trackBrowseOperation = NULL;
 	
-	if (albumBrowseOperation != NULL)
-		sp_toplistbrowse_release(albumBrowseOperation);
-	
-	if (trackBrowseOperation != NULL)
-		sp_toplistbrowse_release(trackBrowseOperation);
-	
+	dispatch_async([SPSession libSpotifyQueue], ^() {
+		if (outgoing_artistbrowse) sp_toplistbrowse_release(outgoing_artistbrowse);
+		if (outgoing_albumbrowse) sp_toplistbrowse_release(outgoing_albumbrowse);
+		if (outgoing_trackbrowse) sp_toplistbrowse_release(outgoing_trackbrowse);
+	});
 }
 
 @end

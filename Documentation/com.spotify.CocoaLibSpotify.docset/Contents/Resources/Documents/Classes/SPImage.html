@@ -59,16 +59,16 @@
 	
 	<option value="//api/name/imageWithImageId:inSession:">&nbsp;&nbsp;&nbsp;&nbsp;+ imageWithImageId:inSession:</option>
 	
-	<option value="//api/name/imageWithImageURL:inSession:">&nbsp;&nbsp;&nbsp;&nbsp;+ imageWithImageURL:inSession:</option>
+	<option value="//api/name/imageWithImageURL:inSession:callback:">&nbsp;&nbsp;&nbsp;&nbsp;+ imageWithImageURL:inSession:callback:</option>
 	
 	
 	
 	
 	<option value="instance_methods">Instance Methods</option>
 	
-	<option value="//api/name/beginLoading">&nbsp;&nbsp;&nbsp;&nbsp;- beginLoading</option>
-	
 	<option value="//api/name/initWithImageStruct:imageId:inSession:">&nbsp;&nbsp;&nbsp;&nbsp;- initWithImageStruct:imageId:inSession:</option>
+	
+	<option value="//api/name/startLoading">&nbsp;&nbsp;&nbsp;&nbsp;- startLoading</option>
 	
 	
 	
@@ -120,7 +120,7 @@
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/imageWithImageId:inSession:">imageWithImageId:inSession:</a></span></li>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/imageWithImageURL:inSession:">imageWithImageURL:inSession:</a></span></li>
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/imageWithImageURL:inSession:callback:">imageWithImageURL:inSession:callback:</a></span></li>
 	
 </ul></li>
 
@@ -128,9 +128,9 @@
 
 <li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#instance_methods">Instance Methods</a></span><ul>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/beginLoading">beginLoading</a></span></li>
-	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/initWithImageStruct:imageId:inSession:">initWithImageStruct:imageId:inSession:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/startLoading">startLoading</a></span></li>
 	
 </ul></li>
 
@@ -157,6 +157,9 @@
 						<tr>
 	<td class="specification-title">Inherits from</td>
 	<td class="specification-value">NSObject</td>
+</tr><tr>
+	<td class="specification-title">Conforms to</td>
+	<td class="specification-value"><a href="../Protocols/SPAsyncLoading.html">SPAsyncLoading</a><br /><a href="../Protocols/SPDelayableAsyncLoading.html">SPDelayableAsyncLoading</a></td>
 </tr><tr>
 	<td class="specification-title">Declared in</td>
 	<td class="specification-value">SPImage.h<br />SPImage.m</td>
@@ -194,7 +197,7 @@
 	
 </li><li>
 	<span class="tooltip">
-		<code><a href="#//api/name/imageWithImageURL:inSession:">+&nbsp;imageWithImageURL:inSession:</a></code>
+		<code><a href="#//api/name/imageWithImageURL:inSession:callback:">+&nbsp;imageWithImageURL:inSession:callback:</a></code>
 		<span class="tooltip"><p>Creates an SPImage from the given URL.</p></span>
 	</span>
 	
@@ -216,7 +219,7 @@
 						<ul class="task-list">
 							<li>
 	<span class="tooltip">
-		<code><a href="#//api/name/beginLoading">&ndash;&nbsp;beginLoading</a></code>
+		<code><a href="#//api/name/startLoading">&ndash;&nbsp;startLoading</a></code>
 		<span class="tooltip"><p>Begins loading the <a href="#//api/name/image">image</a> if it hasn&rsquo;t already been <a href="#//api/name/loaded">loaded</a>.</p></span>
 	</span>
 	
@@ -442,7 +445,8 @@
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> This should only be used if you plan to directly use the
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div><div class="warning"><p><strong>Warning:</strong> This should only be used if you plan to directly use the
 C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
 API directly on items that have CocoaLibSpotify objects associated with them.</p></div>
 	</div>
@@ -546,7 +550,8 @@ API directly on items that have CocoaLibSpotify objects associated with them.</p
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This convenience method creates an SPImage object if one doesn&rsquo;t exist, or
-returns a cached SPImage if one already exists for the given ID.</p>
+returns a cached SPImage if one already exists for the given ID.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div>
 	</div>
 	
 	
@@ -564,8 +569,8 @@ returns a cached SPImage if one already exists for the given ID.</p>
 </div>
 						
 						<div class="section-method">
-	<a name="//api/name/imageWithImageURL:inSession:" title="imageWithImageURL:inSession:"></a>
-	<h3 class="subsubtitle method-title">imageWithImageURL:inSession:</h3>
+	<a name="//api/name/imageWithImageURL:inSession:callback:" title="imageWithImageURL:inSession:callback:"></a>
+	<h3 class="subsubtitle method-title">imageWithImageURL:inSession:callback:</h3>
 	
 	
 	
@@ -574,7 +579,7 @@ returns a cached SPImage if one already exists for the given ID.</p>
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>+ (SPImage *)imageWithImageURL:(NSURL *)<em>imageURL</em> inSession:(SPSession *)<em>aSession</em></code></div>
+	<div class="method-subsection method-declaration"><code>+ (void)imageWithImageURL:(NSURL *)<em>imageURL</em> inSession:(SPSession *)<em>aSession</em> callback:(void ( ^ ) ( SPImage *image ))<em>block</em></code></div>
 	
 	
 	<div class="method-subsection arguments-section parameters">
@@ -590,14 +595,14 @@ returns a cached SPImage if one already exists for the given ID.</p>
 			<dd><p>The <a href="../Classes/SPSession.html">SPSession</a> the <a href="#//api/name/image">image</a> should exist in.</p></dd>
 		</dl>
 		
+		<dl class="argument-def parameter-def">
+			<dt><em>block</em></dt>
+			<dd><p>The block to be called with the created SPImage object.</p></dd>
+		</dl>
+		
 	</div>
 	
 	
-	
-	<div class="method-subsection return">
-		<h4 class="method-subtitle parameter-title">Return Value</h4>
-		<p>Returns the created SPImage object.</p>
-	</div>
 	
 	
 	
@@ -630,45 +635,6 @@ returns a cached SPImage if one already exists for the given URL.</p>
 					<div class="section section-methods">
 						<a title="Instance Methods" name="instance_methods"></a>
 						<h2 class="subtitle subtitle-methods">Instance Methods</h2>
-						
-						<div class="section-method">
-	<a name="//api/name/beginLoading" title="beginLoading"></a>
-	<h3 class="subsubtitle method-title">beginLoading</h3>
-	
-	
-	
-	<div class="method-subsection brief-description">
-		<p>Begins loading the <a href="#//api/name/image">image</a> if it hasn&rsquo;t already been <a href="#//api/name/loaded">loaded</a>.</p>
-	</div>		
-	
-	
-	<div class="method-subsection method-declaration"><code>- (void)beginLoading</code></div>
-	
-	
-	
-	
-	
-	
-	
-	
-	<div class="method-subsection discussion-section">
-		<h4 class="method-subtitle">Discussion</h4>
-		<p>This is called automatically if you request the <a href="#//api/name/image">image</a> property.</p>
-	</div>
-	
-	
-	
-	
-	
-	
-	
-	<div class="method-subsection declared-in-section">
-		<h4 class="method-subtitle">Declared In</h4>
-		<code class="declared-in-ref">SPImage.h</code><br />
-	</div>				
-	
-	
-</div>
 						
 						<div class="section-method">
 	<a name="//api/name/initWithImageStruct:imageId:inSession:" title="initWithImageStruct:imageId:inSession:"></a>
@@ -717,8 +683,48 @@ returns a cached SPImage if one already exists for the given URL.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> <em>Important:</em> For better performance and built-in caching, it is recommended
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+&ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div><div class="warning"><p><strong>Warning:</strong> For better performance and built-in caching, it is recommended
 you create SPImage objects using <a href="#//api/name/imageWithImageId:inSession:">[SPImage imageWithImageId:inSession:]</a>.</p></div>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPImage.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/startLoading" title="startLoading"></a>
+	<h3 class="subsubtitle method-title">startLoading</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Begins loading the <a href="#//api/name/image">image</a> if it hasn&rsquo;t already been <a href="#//api/name/loaded">loaded</a>.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>- (void)startLoading</code></div>
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<p>This is called automatically if you request the <a href="#//api/name/image">image</a> property.</p>
 	</div>
 	
 	
@@ -748,7 +754,7 @@ you create SPImage objects using <a href="#//api/name/imageWithImageId:inSession
 				<div id="footer">
 					<hr />
 					<div class="footer-copyright">
-						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-04-02)</span><br />
+						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-05-23)</span><br />
 						
 						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.0.5 (build 789)</a>.</span></p>
 						

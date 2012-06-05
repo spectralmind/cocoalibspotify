@@ -119,20 +119,24 @@ static NSMutableDictionary *loginControllerCache;
 
 -(void)sessionDidLogin:(NSNotification *)notification {
 	
-	int num_licenses = sp_session_signup_get_unaccepted_licenses(self.session.session, NULL, 0);
+	dispatch_async([SPSession libSpotifyQueue], ^{
+		int num_licenses = sp_session_signup_get_unaccepted_licenses(self.session.session, NULL, 0);
 	
-	if (num_licenses > 0) {
-		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"T&C and Privacy Policy"
-														 message:@"I have read and accept Spotify's Terms and Conditions of Use and Privacy Policy."
-														delegate:self
-											   cancelButtonTitle:@"Show terms"
-											   otherButtonTitles:@"Accept", nil];
-		[alert show];
-	}
-	
-	if ((!self.didReceiveSignupFlow) && num_licenses == 0) {
-		[self dismissLoginView:YES];
-	}
+		dispatch_async(dispatch_get_main_queue(), ^{
+			if (num_licenses > 0) {
+				UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"T&C and Privacy Policy"
+																message:@"I have read and accept Spotify's Terms and Conditions of Use and Privacy Policy."
+															   delegate:self
+													  cancelButtonTitle:@"Show terms"
+													  otherButtonTitles:@"Accept", nil];
+				[alert show];
+			}
+			
+			if ((!self.didReceiveSignupFlow) && num_licenses == 0) {
+				[self dismissLoginView:YES];
+			}
+		});
+	});
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -141,35 +145,44 @@ static NSMutableDictionary *loginControllerCache;
 		
 		[self handleShowSignupPage:SP_SIGNUP_PAGE_NONE loading:NO featureMask:0 recentUserName:nil];
 		
-		int num_licenses = sp_session_signup_get_unaccepted_licenses(self.session.session, NULL, 0);
-		const char **licenses = malloc(sizeof(const char *) * num_licenses);
-		num_licenses = sp_session_signup_get_unaccepted_licenses(self.session.session, licenses, num_licenses);
-		
-		NSString *licenseToView = nil;
-		if (num_licenses > 0)
-			licenseToView = [NSString stringWithUTF8String:licenses[num_licenses-1]];
-		
-		free(licenses);
-		
-		SPLicenseViewController *agreement = [[SPLicenseViewController alloc] initWithVersion:licenseToView];
-		UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:agreement];
-		nav.navigationBar.barStyle = UIBarStyleBlack;
-		nav.modalPresentationStyle = UIModalPresentationFormSheet;
-		
-		[self presentModalViewController:nav animated:YES];
+		dispatch_async([SPSession libSpotifyQueue], ^{
+			int num_licenses = sp_session_signup_get_unaccepted_licenses(self.session.session, NULL, 0);
+			const char **licenses = malloc(sizeof(const char *) * num_licenses);
+			num_licenses = sp_session_signup_get_unaccepted_licenses(self.session.session, licenses, num_licenses);
+			
+			NSString *licenseToView = nil;
+			if (num_licenses > 0)
+				licenseToView = [NSString stringWithUTF8String:licenses[num_licenses-1]];
+			
+			free(licenses);
+			
+			dispatch_async(dispatch_get_main_queue(), ^{
+				SPLicenseViewController *agreement = [[SPLicenseViewController alloc] initWithVersion:licenseToView];
+				UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:agreement];
+				nav.navigationBar.barStyle = UIBarStyleBlack;
+				nav.modalPresentationStyle = UIModalPresentationFormSheet;
+				
+				[self presentModalViewController:nav animated:YES];
+			});
+		});
 		
 	} else {
 		//Success!
-		const char **licenses = malloc(sizeof(char *) * 10);
-		int num_licenses = sp_session_signup_get_unaccepted_licenses(self.session.session, licenses, 10);
-		sp_signup_userdata_with_accepted_licenses licenses_info;
-		licenses_info.licenses = licenses;
-		licenses_info.license_count = num_licenses;
-		sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_ACCEPT_LICENSES, &licenses_info);
-		free(licenses);
 		
-		if (!self.didReceiveSignupFlow)
-			[self dismissLoginView:YES];
+		dispatch_async([SPSession libSpotifyQueue], ^{
+			const char **licenses = malloc(sizeof(char *) * 10);
+			int num_licenses = sp_session_signup_get_unaccepted_licenses(self.session.session, licenses, 10);
+			sp_signup_userdata_with_accepted_licenses licenses_info;
+			licenses_info.licenses = licenses;
+			licenses_info.license_count = num_licenses;
+			sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_ACCEPT_LICENSES, &licenses_info);
+			free(licenses);
+			
+			dispatch_async(dispatch_get_main_queue(), ^{
+				if (!self.didReceiveSignupFlow)
+					[self dismissLoginView:YES];
+			});
+		});
 	}
 }
 
@@ -195,11 +208,11 @@ static NSMutableDictionary *loginControllerCache;
 }
 
 -(void)signupDidPushBack {
-	sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_GO_BACK, NULL);
+	dispatch_async([SPSession libSpotifyQueue], ^() { sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_GO_BACK, NULL); });
 }
 
 -(void)signupDidPushCancel {
-	sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_CANCEL_SIGNUP, NULL);
+	dispatch_async([SPSession libSpotifyQueue], ^() { sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_CANCEL_SIGNUP, NULL); });
 	[self handleShowSignupPage:SP_SIGNUP_PAGE_NONE loading:NO featureMask:0 recentUserName:nil];
 }
 
@@ -273,7 +286,7 @@ static NSMutableDictionary *loginControllerCache;
 	}
 	
 	if (page == SP_SIGNUP_PAGE_NONE) {
-		[self.session logout];
+		[self.session logout:nil];
 		SPLoginLogicViewController *root = [[self viewControllers] objectAtIndex:0];
 		[root resetState];
 		[self popToViewController:root animated:YES];

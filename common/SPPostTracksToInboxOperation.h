@@ -49,53 +49,53 @@
  This convenience method is simply returns a new, autoreleased SPPostTracksToInboxOperation
  object. No caching is performed.
  
- @warning *Important:* Tracks will be posted to the given user as soon as a SPPostTracksToInboxOperation
+ @warning Tracks will be posted to the given user as soon as a SPPostTracksToInboxOperation
  object is created. Be sure you want to post the tracks before creating the object!
  
  @param tracksToSend An array of SPTrack objects to send.
  @param user The username of the user to send the tracks to.
  @param aFriendlyGreeting The message to send with the tracks, if any.
  @param aSession The session to send the tracks with.
- @param completionDelegate The delegate to send success/failure messages to.
+ @param block The `SPErrorableOperationCallback` block to be called with an `NSError` if the operation failed or `nil` if the operation succeeded.
  @return Returns the created SPPostTracksToInboxOperation object. 
  */
 +(SPPostTracksToInboxOperation *)sendTracks:(NSArray *)tracksToSend
 									 toUser:(NSString *)user 
 									message:(NSString *)aFriendlyGreeting
 								  inSession:(SPSession *)aSession
-								   delegate:(id <SPPostTracksToInboxOperationDelegate>)completionDelegate;
+								   callback:(SPErrorableOperationCallback)block;
 
 /** Initializes an SPPostTracksToInboxOperation for the given details.
  
- @warning *Important:* Tracks will be posted to the given user as soon as a SPPostTracksToInboxOperation
+ @warning Tracks will be posted to the given user as soon as a SPPostTracksToInboxOperation
  object is created. Be sure you want to post the tracks before creating the object!
  
  @param tracksToSend An array of SPTrack objects to send.
  @param user The username of the user to send the tracks to.
  @param aFriendlyGreeting The message to send with the tracks, if any.
  @param aSession The session to send the tracks with.
- @param completionDelegate The delegate to send success/failure messages to.
+ @param block The `SPErrorableOperationCallback` block to be called with an `NSError` if the operation failed or `nil` if the operation succeeded.
  @return Returns the created SPPostTracksToInboxOperation object. 
  */
 -(id)initBySendingTracks:(NSArray *)tracksToSend
 				  toUser:(NSString *)user 
 				 message:(NSString *)aFriendlyGreeting
 			   inSession:(SPSession *)aSession
-				delegate:(id <SPPostTracksToInboxOperationDelegate>)completionDelegate;
+				callback:(SPErrorableOperationCallback)block;
 
 ///----------------------------
 /// @name Properties
 ///----------------------------
-
-/** Returns the operation's delegate. */
-@property (nonatomic, readonly, assign) __unsafe_unretained id <SPPostTracksToInboxOperationDelegate> delegate;
 
 /** Returns the username of the user the tracks the operation is sending tracks to. */
 @property (nonatomic, readonly, copy) NSString *destinationUser;
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning *Important:* This should only be used if you plan to directly use the 
+ @warning This method *must* be called on the libSpotify queue. See the
+ "Threading" section of the library's readme for more information.
+ 
+ @warning This should only be used if you plan to directly use the 
  C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
  API directly on items that have CocoaLibSpotify objects associated with them. 
  */
@@ -109,25 +109,5 @@
 
 /** Returns the tracks being sent. */
 @property (nonatomic, readonly, copy) NSArray *tracks;
-
-@end
-
-/** Delegate callbacks from SPPostTracksToInboxOperation on success or failure. */
-
-@protocol SPPostTracksToInboxOperationDelegate <NSObject>
-@optional
-
-/** Called when the given post operation succeeded. 
- 
- @param operation The operation that succeeded.
- */
--(void)postTracksToInboxOperationDidSucceed:(SPPostTracksToInboxOperation *)operation;
-
-/** Called when the given post operation failed. 
- 
- @param operation The operation that failed.
- @param error The error that caused the failure.
- */
--(void)postTracksToInboxOperation:(SPPostTracksToInboxOperation *)operation didFailWithError:(NSError *)error;
 
 @end

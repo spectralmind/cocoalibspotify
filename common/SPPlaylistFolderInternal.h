@@ -33,17 +33,16 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #import <Foundation/Foundation.h>
 #import "CocoaLibSpotifyPlatformImports.h"
 
-@interface SPPlaylistFolder (SPPlaylistFolderInternal)
+@interface SPPlaylistFolder ()
 
 -(id)initWithPlaylistFolderId:(sp_uint64)anId 
 					container:(SPPlaylistContainer *)aContainer
 					inSession:(SPSession *)aSession;
 
--(void)rangeMayHaveChanged;
+-(void)addObject:(id)playlistOrFolder;
+-(void)clearAllItems;
 
--(NSUInteger)virtualChildIndexForFlattenedIndex:(NSUInteger)flattenedIndex;
--(NSUInteger)flattenedIndexForVirtualChildIndex:(NSUInteger)virtualIndex;
-
-@property (nonatomic, readonly) NSRange containerPlaylistRange;
+@property (nonatomic, readonly, readwrite) __weak SPPlaylistFolder *parentFolder;
+@property (readwrite, nonatomic, copy) NSString *name;
 
 @end

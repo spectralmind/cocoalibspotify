@@ -57,6 +57,8 @@
 
 @property (nonatomic, readwrite, copy) NSString *biography;
 
+@property (nonatomic, readwrite) sp_artistbrowse *artistBrowse;
+
 @end
 
 void artistbrowse_complete(sp_artistbrowse *result, void *userdata);
@@ -64,20 +66,24 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 	
 	@autoreleasepool {
 		
+		// This is on the libSpotify thread
+		
 		SPArtistBrowse *artistBrowse = (__bridge_transfer SPArtistBrowse *)userdata;
 		
-		artistBrowse.loaded = sp_artistbrowse_is_loaded(result);
+		BOOL isLoaded = sp_artistbrowse_is_loaded(result);
 		sp_error errorCode = sp_artistbrowse_error(result);
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
 		
-		if (errorCode != SP_ERROR_OK) {
-			artistBrowse.loadError = [NSError spotifyErrorWithCode:errorCode];
-		} else {
-			artistBrowse.loadError = nil;
-		}
+		NSString *newBio = nil;
+		NSArray *newTracks = nil;
+		NSArray *newTopTracks = nil;
+		NSArray *newRelatedArtists = nil;
+		NSArray *newAlbums = nil;
+		NSArray *newPortraits = nil;
 		
-		if (artistBrowse.isLoaded) {
+		if (isLoaded) {
 			
-			artistBrowse.biography = [NSString stringWithUTF8String:sp_artistbrowse_biography(result)];
+			newBio = [NSString stringWithUTF8String:sp_artistbrowse_biography(result)];
 			
 			int trackCount = sp_artistbrowse_num_tracks(result);
 			NSMutableArray *tracks = [NSMutableArray arrayWithCapacity:trackCount];
@@ -88,7 +94,7 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 				}
 			}
 			
-			artistBrowse.tracks = [NSArray arrayWithArray:tracks];
+			newTracks = [NSArray arrayWithArray:tracks];
 			
 			int topTrackCount = sp_artistbrowse_num_tophit_tracks(result);
 			NSMutableArray *topTracks = [NSMutableArray arrayWithCapacity:topTrackCount];
@@ -99,7 +105,7 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 				}
 			}
 			
-			artistBrowse.topTracks = [NSArray arrayWithArray:topTracks];
+			newTopTracks = [NSArray arrayWithArray:topTracks];
 			
 			int albumCount = sp_artistbrowse_num_albums(result);
 			NSMutableArray *albums = [NSMutableArray arrayWithCapacity:albumCount];
@@ -110,7 +116,7 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 				}
 			}
 			
-			artistBrowse.albums = [NSArray arrayWithArray:albums];
+			newAlbums = [NSArray arrayWithArray:albums];
 			
 			int relatedArtistCount = sp_artistbrowse_num_similar_artists(result);
 			NSMutableArray *relatedArtists = [NSMutableArray arrayWithCapacity:relatedArtistCount];
@@ -121,7 +127,7 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 				}
 			}
 			
-			artistBrowse.relatedArtists = [NSArray arrayWithArray:relatedArtists];
+			newRelatedArtists = [NSArray arrayWithArray:relatedArtists];
 			
 			int portraitCount = sp_artistbrowse_num_portraits(result);
 			NSMutableArray *portraits = [NSMutableArray arrayWithCapacity:portraitCount];
@@ -133,15 +139,23 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 				}
 			}
 			
-			artistBrowse.portraits = [NSArray arrayWithArray:portraits];
+			newPortraits = [NSArray arrayWithArray:portraits];
 		}
 		
+		dispatch_async(dispatch_get_main_queue(), ^{
+			artistBrowse.loadError = error;
+			artistBrowse.biography = newBio;
+			artistBrowse.tracks = newTracks;
+			artistBrowse.relatedArtists = newRelatedArtists;
+			artistBrowse.albums = newAlbums;
+			artistBrowse.portraits = newPortraits;
+			artistBrowse.topTracks = newTopTracks;
+			artistBrowse.loaded = isLoaded;
+		});
 	}
 }
 
-@implementation SPArtistBrowse {
-	sp_artistbrowse *browseOperation;
-}
+@implementation SPArtistBrowse
 
 +(SPArtistBrowse *)browseArtist:(SPArtist *)anArtist inSession:(SPSession *)aSession type:(sp_artistbrowse_type)browseMode {
 	return [[SPArtistBrowse alloc] initWithArtist:anArtist
@@ -149,10 +163,11 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 											 type:browseMode];
 }
 
-+(SPArtistBrowse *)browseArtistAtURL:(NSURL *)artistURL inSession:(SPSession *)aSession type:(sp_artistbrowse_type)browseMode {
-	return [[SPArtistBrowse alloc] initWithArtist:[SPArtist artistWithArtistURL:artistURL inSession:aSession]
-										inSession:aSession
-											 type:browseMode];
++(void)browseArtistAtURL:(NSURL *)artistURL inSession:(SPSession *)aSession type:(sp_artistbrowse_type)browseMode callback:(void (^)(SPArtistBrowse *artistBrowse))block {
+	
+	[SPArtist artistWithArtistURL:artistURL inSession:aSession callback:^(SPArtist *artist) {
+		if (block) block([[SPArtistBrowse alloc] initWithArtist:artist inSession:aSession type:browseMode]);
+	}];
 }
 
 -(id)initWithArtist:(SPArtist *)anArtist inSession:(SPSession *)aSession type:(sp_artistbrowse_type)browseMode {
@@ -165,14 +180,13 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 		self.session = aSession;
 		self.artist = anArtist;
 		
-		sp_artistbrowse *artistBrowse = sp_artistbrowse_create(self.session.session,
-															   self.artist.artist,
-															   browseMode,
-															   &artistbrowse_complete,
-															   (__bridge_retained void *)(self));
-		if (artistBrowse != NULL) {
-			browseOperation = artistBrowse;
-		}
+		dispatch_async([SPSession libSpotifyQueue], ^{
+			self.artistBrowse = sp_artistbrowse_create(aSession.session,
+													   anArtist.artist,
+													   browseMode,
+													   &artistbrowse_complete,
+													   (__bridge_retained void *)(self));
+		});
 	}
 	
 	return self;
@@ -192,6 +206,14 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 @synthesize albums;
 @synthesize relatedArtists;
 @synthesize biography;
+@synthesize artistBrowse = _artistBrowse;
+
+-(sp_artistbrowse *)artistBrowse {
+#if DEBUG
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+#endif 
+	return _artistBrowse;
+}
 
 +(NSSet *)keyPathsForValuesAffectingFirstPortrait {
 	return [NSSet setWithObject:@"portraits"];
@@ -205,10 +227,9 @@ void artistbrowse_complete(sp_artistbrowse *result, void *userdata) {
 }
 
 - (void)dealloc {
-	
-	if (browseOperation != NULL)
-		sp_artistbrowse_release(browseOperation);
-	
+	sp_artistbrowse *outgoing_browse = _artistBrowse;
+	_artistBrowse = NULL;
+	dispatch_async([SPSession libSpotifyQueue], ^() { if (outgoing_browse) sp_artistbrowse_release(outgoing_browse); });
 }
 
 @end

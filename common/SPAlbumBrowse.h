@@ -46,7 +46,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @class SPSession;
 @class SPArtist;
 
-@interface SPAlbumBrowse : NSObject
+@interface SPAlbumBrowse : NSObject <SPAsyncLoading>
 
 ///----------------------------
 /// @name Creating and Initializing Album Browses
@@ -68,14 +68,14 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This convenience method is simply returns a new, autoreleased SPAlbumBrowse
  object. No caching is performed.
  
- @warning *Important:* If you pass in an invalid album URL (i.e., any URL not
+ @warning If you pass in an invalid album URL (i.e., any URL not
  starting `spotify:album:`, this method will return `nil`.
  
  @param albumURL The album URL to make an SPAlbumBrowse for.
  @param aSession The SPSession the browse should exist in.
- @return Returns the created SPAlbumBrowse object. 
+ @param block The block to be called with the created SPAlbumBrowse object. 
  */
-+(SPAlbumBrowse *)browseAlbumAtURL:(NSURL *)albumURL inSession:(SPSession *)aSession;
++(void)browseAlbumAtURL:(NSURL *)albumURL inSession:(SPSession *)aSession callback:(void (^)(SPAlbumBrowse *albumBrowse))block;
 
 /** Initializes a new SPAlbumBrowse from the given SPAlbum. 
  

@@ -79,17 +79,27 @@
 #pragma mark - Actions
 
 -(void)add {
-	sp_signup_userdata_success success;
-	success.success = true;
-	sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_CONNECT_TO_FACEBOOK_COMPLETED, &success);
-	[self.delegate signupPageDidAccept:self];
+	dispatch_async([SPSession libSpotifyQueue], ^{
+		sp_signup_userdata_success success;
+		success.success = true;
+		sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_CONNECT_TO_FACEBOOK_COMPLETED, &success);
+		
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self.delegate signupPageDidAccept:self];
+		});
+	});
 }
 
 -(void)cancel {
-	sp_signup_userdata_success success;
-	success.success = false;
-	sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_CONNECT_TO_FACEBOOK_COMPLETED, &success);
-	[self.delegate signupPageDidCancel:self];
+	dispatch_async([SPSession libSpotifyQueue], ^{
+		sp_signup_userdata_success success;
+		success.success = false;
+		sp_session_signup_perform_action(self.session.session, SP_SIGNUP_ACTION_CONNECT_TO_FACEBOOK_COMPLETED, &success);
+		
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[self.delegate signupPageDidCancel:self];
+		});
+	});
 }
 
 @end

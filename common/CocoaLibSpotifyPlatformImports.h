@@ -39,11 +39,13 @@
 #import <UIKit/UIKit.h>
 #import <CoreAudio/CoreAudioTypes.h>
 #import "SPCommon.h"
+#import "SPAsyncLoading.h"
 #define SPPlatformNativeImage UIImage
 #else
 #import <Cocoa/Cocoa.h>
 #import <CoreAudio/CoreAudio.h>
 #import <libspotify/api.h>
 #import <CocoaLibSpotify/SPCommon.h>
+#import <CocoaLibSpotify/SPAsyncLoading.h>
 #define SPPlatformNativeImage NSImage
 #endif

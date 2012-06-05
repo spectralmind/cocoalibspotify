@@ -61,6 +61,8 @@
 @property (nonatomic, readwrite, strong) NSArray *copyrights;
 @property (nonatomic, readwrite, copy) NSString *review;
 
+@property (nonatomic, readwrite) sp_albumbrowse *albumBrowse;
+
 @end
 
 void albumbrowse_complete (sp_albumbrowse *result, void *userdata);
@@ -68,29 +70,23 @@ void albumbrowse_complete (sp_albumbrowse *result, void *userdata) {
 	
 	@autoreleasepool {
 		
+		// This called on the libSpotify queue
+		
 		SPAlbumBrowse *albumBrowse = (__bridge_transfer SPAlbumBrowse *)userdata;
+		
+		BOOL isLoaded = sp_albumbrowse_is_loaded(result);
+		
 		sp_error errorCode = sp_albumbrowse_error(result);
+		NSError *error = errorCode == SP_ERROR_OK ? nil : [NSError spotifyErrorWithCode:errorCode];
+		NSString *newReview = nil;
+		SPArtist *newArtist = nil;
+		NSArray *newTracks = nil;
+		NSArray *newCopyrights = nil;
 		
-		if (errorCode != SP_ERROR_OK) {
-			albumBrowse.loadError = [NSError spotifyErrorWithCode:errorCode];
-		} else {
-			albumBrowse.loadError = nil;
-		}
-		
-		BOOL loaded = sp_albumbrowse_is_loaded(result);
-		
-		if (loaded) {
+		if (isLoaded) {
 			
-			sp_error errorCode = sp_albumbrowse_error(result);
-			
-			if (errorCode != SP_ERROR_OK) {
-				albumBrowse.loadError = [NSError spotifyErrorWithCode:errorCode];
-			} else {
-				albumBrowse.loadError = nil;
-			}
-			
-			albumBrowse.review = [NSString stringWithUTF8String:sp_albumbrowse_review(result)];
-			albumBrowse.artist = [SPArtist artistWithArtistStruct:sp_albumbrowse_artist(result) inSession:albumBrowse.session];
+			newReview = [NSString stringWithUTF8String:sp_albumbrowse_review(result)];
+			newArtist = [SPArtist artistWithArtistStruct:sp_albumbrowse_artist(result) inSession:albumBrowse.session];
 			
 			int trackCount = sp_albumbrowse_num_tracks(result);
 			NSMutableArray *tracks = [NSMutableArray arrayWithCapacity:trackCount];
@@ -103,7 +99,7 @@ void albumbrowse_complete (sp_albumbrowse *result, void *userdata) {
 				}
 			}
 			
-			albumBrowse.tracks = [NSArray arrayWithArray:tracks];
+			newTracks = [NSArray arrayWithArray:tracks];
 			
 			int copyrightCount = sp_albumbrowse_num_copyrights(result);
 			NSMutableArray *copyrights = [NSMutableArray arrayWithCapacity:copyrightCount];
@@ -112,26 +108,34 @@ void albumbrowse_complete (sp_albumbrowse *result, void *userdata) {
 				[copyrights addObject:[NSString stringWithUTF8String:copyright]];
 			}
 			
-			albumBrowse.copyrights = [NSArray arrayWithArray:copyrights];
-			
-			[albumBrowse.album albumBrowseDidLoad];
+			newCopyrights = [NSArray arrayWithArray:copyrights];
 		}
-		albumBrowse.loaded = loaded;
+		
+		dispatch_async(dispatch_get_main_queue(), ^{
+			albumBrowse.loadError = error;
+			albumBrowse.review = newReview;
+			albumBrowse.artist = newArtist;
+			albumBrowse.tracks = newTracks;
+			albumBrowse.copyrights = newCopyrights;
+			[albumBrowse.album albumBrowseDidLoad];
+			albumBrowse.loaded = isLoaded;
+		});
 	}
 }
 
-@implementation SPAlbumBrowse {
-	sp_albumbrowse *browseOperation;
-}
+@implementation SPAlbumBrowse
 
 +(SPAlbumBrowse *)browseAlbum:(SPAlbum *)anAlbum inSession:(SPSession *)aSession {
 	return [[SPAlbumBrowse alloc] initWithAlbum:anAlbum inSession:aSession];
 }
 
-+(SPAlbumBrowse *)browseAlbumAtURL:(NSURL *)albumURL inSession:(SPSession *)aSession {
-	return [[SPAlbumBrowse alloc] initWithAlbum:[SPAlbum albumWithAlbumURL:albumURL inSession:aSession] 
-									  inSession:aSession];
++(void)browseAlbumAtURL:(NSURL *)albumURL inSession:(SPSession *)aSession callback:(void (^)(SPAlbumBrowse *albumBrowse))block {
 	
+	[SPAlbum albumWithAlbumURL:albumURL 
+					 inSession:aSession 
+					  callback:^(SPAlbum *album) {
+						  if (block) block([SPAlbumBrowse browseAlbum:album inSession:aSession]);
+					  }];
 }
 
 -(id)initWithAlbum:(SPAlbum *)anAlbum inSession:(SPSession *)aSession; {
@@ -144,13 +148,12 @@ void albumbrowse_complete (sp_albumbrowse *result, void *userdata) {
 		self.session = aSession;
 		self.album = anAlbum;
 		
-		sp_albumbrowse *albumBrowse = sp_albumbrowse_create(self.session.session,
-															self.album.album,
-															&albumbrowse_complete,
-															(__bridge_retained void *)(self));
-		if (albumBrowse != NULL) {
-			browseOperation = albumBrowse;
-		}
+		dispatch_async([SPSession libSpotifyQueue], ^{
+			self.albumBrowse = sp_albumbrowse_create(aSession.session,
+													 anAlbum.album,
+													 &albumbrowse_complete,
+													 (__bridge_retained void *)(self));
+		});
 	}
 	
 	return self;
@@ -168,12 +171,19 @@ void albumbrowse_complete (sp_albumbrowse *result, void *userdata) {
 @synthesize tracks;
 @synthesize copyrights;
 @synthesize review;
+@synthesize albumBrowse = _albumBrowse;
+
+-(sp_albumbrowse *)albumBrowse {
+#if DEBUG
+	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+#endif 
+	return _albumBrowse;
+}
 
 - (void)dealloc {
-	
-	if (browseOperation != NULL)
-		sp_albumbrowse_release(browseOperation);
-	
+	sp_albumbrowse *outgoing_browse = _albumBrowse;
+	_albumBrowse = NULL;
+	dispatch_async([SPSession libSpotifyQueue], ^() { if (outgoing_browse) sp_albumbrowse_release(outgoing_browse); });
 }
 
 @end
