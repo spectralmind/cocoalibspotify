@@ -191,7 +191,6 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 		dispatch_async(dispatch_get_main_queue(), ^() {
 			self.owner = user;
 			self.playlists = newTree;
-			self.loaded = YES;
 		});
 	});
 }
