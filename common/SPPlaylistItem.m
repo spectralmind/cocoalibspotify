@@ -53,10 +53,14 @@
 		self.playlist = aPlaylist;
 		self.itemIndex = index;
 		if (sp_track_is_placeholder(track)) {
-			[self.playlist.session objectRepresentationForSpotifyURL:[NSURL urlWithSpotifyLink:sp_link_create_from_track(track, 0)]
+			sp_link *link = sp_link_create_from_track(track, 0);
+			[self.playlist.session objectRepresentationForSpotifyURL:[NSURL urlWithSpotifyLink:link]
 			 callback:^(sp_linktype linkType, id objectRepresentation) {
 				 self.item = objectRepresentation;
 			 }];
+			if(link != NULL) {
+				sp_link_release(link);
+			}
 		} else {
 			self.item = [SPTrack trackForTrackStruct:track inSession:self.playlist.session];
 		}
