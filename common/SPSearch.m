@@ -144,7 +144,7 @@ void search_complete(sp_search *result, void *userdata) {
 				[NSURL urlDecodedStringForString:
 				 [linkString stringByReplacingOccurrencesOfString:@"spotify:search:"
 													   withString:@""]]
-								pageSize:kSPSearchDefaultSearchPageSize
+								pageSize:size
 							   inSession:aSession
 									type:SP_SEARCH_STANDARD];
 	}
