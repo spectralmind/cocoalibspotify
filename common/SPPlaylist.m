@@ -589,11 +589,15 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 		dispatch_async(dispatch_get_main_queue(), ^{
 			self.items = newItems;
 			dispatch_async([SPSession libSpotifyQueue], ^() {
-				self.callbackProxy = [[SPPlaylistCallbackProxy alloc] init];
-				self.callbackProxy.playlist = self;
-				sp_playlist_add_callbacks(self.playlist, &_playlistCallbacks, (__bridge void *)self.callbackProxy);
+
+				if (self.callbackProxy == nil) {
+					// We do this check earlier on, but there's a race condition that causes a nasty crash
+					self.callbackProxy = [[SPPlaylistCallbackProxy alloc] init];
+					self.callbackProxy.playlist = self;
+					sp_playlist_add_callbacks(self.playlist, &_playlistCallbacks, (__bridge void *)self.callbackProxy);
+				}
+
 				sp_playlist_set_in_ram(self.session.session, self.playlist, true);
-				
 				BOOL isLoaded = sp_playlist_is_loaded(self.playlist);
 
 				dispatch_async(dispatch_get_main_queue(), ^() {
