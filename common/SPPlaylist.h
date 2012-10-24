@@ -171,7 +171,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///----------------------------
 
 /** Returns an array of SPPlaylistItem objects representing playlist's item order. */
-@property (nonatomic, readonly, copy) NSArray *items;
+@property (atomic, readonly, copy) NSArray *items;
 
 /** Move item(s) to another location in the list. 
  
@@ -298,5 +298,21 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  @param newIndexes The now current indexes of the items.
  */
 -(void)playlist:(SPPlaylist *)aPlaylist didMoveItems:(NSArray *)items atIndexes:(NSIndexSet *)oldIndexes toIndexes:(NSIndexSet *)newIndexes;
+
+///----------------------------
+/// @name Other Changes
+///----------------------------
+
+/** Called before a change that isn't a simple add, remove or move operation to the items in the playlist.
+
+ @param aPlaylist The playlist in which items will be changed.
+ */
+-(void)playlistWillChangeItems:(SPPlaylist *)aPlaylist;
+
+/** Called after a change that isn't a simple add, remove or move operation to the items in the playlist.
+
+ @param aPlaylist The playlist in which items will be changed.
+ */
+-(void)playlistDidChangeItems:(SPPlaylist *)aPlaylist;
 
 @end

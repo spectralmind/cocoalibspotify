@@ -41,6 +41,13 @@
 			remoteGlobalIDString = 50AF49DB1439CBFE00E4A5EF;
 			remoteInfo = CocoaLibSpotify;
 		};
+		5049C2BF157D020000482987 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 500EC8C21439D54E00E8A60C /* CocoaLibSpotify iOS Library.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 50D4F52B156BCDE800E237DD;
+			remoteInfo = CocoaLSTests;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -93,6 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				500EC8CA1439D54E00E8A60C /* libCocoaLibSpotify.a */,
+				5049C2C0157D020000482987 /* CocoaLSTests.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -216,6 +224,13 @@
 			fileType = archive.ar;
 			path = libCocoaLibSpotify.a;
 			remoteRef = 500EC8C91439D54E00E8A60C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		5049C2C0157D020000482987 /* CocoaLSTests.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = CocoaLSTests.app;
+			remoteRef = 5049C2BF157D020000482987 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */

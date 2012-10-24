@@ -149,7 +149,7 @@
 		504379011370564C001DD605 /* SPPlaylistContainerInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPPlaylistContainerInternal.h; path = ../common/SPPlaylistContainerInternal.h; sourceTree = "<group>"; };
 		50437906137057D7001DD605 /* SPPlaylistFolderInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPPlaylistFolderInternal.h; path = ../common/SPPlaylistFolderInternal.h; sourceTree = "<group>"; };
 		504CBECD150F74F800067170 /* libspotify.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libspotify.framework; path = "libspotify-12.1.45-Darwin-universal/libspotify.framework"; sourceTree = "<group>"; };
-		504E4934155AA85400E1C0F7 /* CocoaLibSpotify Test Container.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CocoaLibSpotify Test Container.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		504E4934155AA85400E1C0F7 /* CocoaLibSpotify Test Container.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "CocoaLibSpotify Test Container.app"; path = CocoaLSTests.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504E4939155AA85500E1C0F7 /* CocoaLibSpotify Test Container-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "CocoaLibSpotify Test Container-Info.plist"; sourceTree = "<group>"; };
 		504E493B155AA85500E1C0F7 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		504E493D155AA85500E1C0F7 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -184,6 +184,7 @@
 		5099D88213647D4F005C7CDC /* SPAlbumBrowse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPAlbumBrowse.h; path = ../common/SPAlbumBrowse.h; sourceTree = "<group>"; };
 		5099D88313647D4F005C7CDC /* SPAlbumBrowse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPAlbumBrowse.m; path = ../common/SPAlbumBrowse.m; sourceTree = "<group>"; };
 		509E6A8514DAE1CB009874C9 /* SPUnknownPlaylist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPUnknownPlaylist.h; path = ../common/SPUnknownPlaylist.h; sourceTree = "<group>"; };
+		50A9F400161B2D5F0009ECA2 /* TestConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TestConstants.h; path = ../../common/Tests/TestConstants.h; sourceTree = "<group>"; };
 		50AB044C1312D00400357CD2 /* SPUser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = SPUser.h; path = ../common/SPUser.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		50AB044D1312D00900357CD2 /* SPUser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPUser.m; path = ../common/SPUser.m; sourceTree = "<group>"; };
 		50BED59B152202E1000D0919 /* SPCircularBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPCircularBuffer.h; path = ../common/SPCircularBuffer.h; sourceTree = "<group>"; };
@@ -363,6 +364,7 @@
 		504E4937155AA85500E1C0F7 /* Unit Tests */ = {
 			isa = PBXGroup;
 			children = (
+				50A9F400161B2D5F0009ECA2 /* TestConstants.h */,
 				504E4943155AA85500E1C0F7 /* AppDelegate.h */,
 				504E4944155AA85500E1C0F7 /* AppDelegate.m */,
 				504E4946155AA85500E1C0F7 /* MainMenu.xib */,
@@ -543,7 +545,7 @@
 		5028EC7E13092B7B00BF0B22 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0440;
+				LastUpgradeCheck = 0450;
 				ORGANIZATIONNAME = Spotify;
 			};
 			buildConfigurationList = 5028EC8113092B7B00BF0B22 /* Build configuration list for PBXProject "CocoaLibSpotify Mac Framework" */;

@@ -34,10 +34,7 @@
 #import "SPAsyncLoading.h"
 #import "SPSession.h"
 #import "SPSearch.h"
-
-static NSTimeInterval const kSearchLoadingTimeout = 15.0;
-static NSString * const kStandardSearchQuery = @"Counting Crows";
-static NSString * const kLiveSearchQuery = @"Counti";
+#import "TestConstants.h"
 
 @implementation SPSearchTests
 
@@ -45,7 +42,7 @@ static NSString * const kLiveSearchQuery = @"Counti";
 	
 	SPSearch *search = [SPSearch searchWithSearchQuery:kStandardSearchQuery inSession:[SPSession sharedSession]];
 	
-	[SPAsyncLoading waitUntilLoaded:search timeout:kSearchLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+	[SPAsyncLoading waitUntilLoaded:search timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 		SPTestAssert(notLoadedItems.count == 0, @"Search loading timed out for %@", search);
 		SPTestAssert(search.searchError == nil, @"Search encountered loading error: %@", search.searchError);
 		SPTestAssert(search.tracks.count > 0, @"Search has no tracks.");
@@ -60,7 +57,7 @@ static NSString * const kLiveSearchQuery = @"Counti";
 	
 	SPSearch *search = [SPSearch liveSearchWithSearchQuery:kLiveSearchQuery inSession:[SPSession sharedSession]];
 	
-	[SPAsyncLoading waitUntilLoaded:search timeout:kSearchLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+	[SPAsyncLoading waitUntilLoaded:search timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 		SPTestAssert(notLoadedItems.count == 0, @"Live search loading timed out for %@", search);
 		SPTestAssert(search.searchError == nil, @"Live search encountered loading error: %@", search.searchError);
 		SPTestAssert(search.tracks.count > 0, @"Live search has no tracks.");

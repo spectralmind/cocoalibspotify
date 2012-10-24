@@ -40,13 +40,7 @@
 #import "SPToplist.h"
 #import "SPAsyncLoading.h"
 #import "SPSession.h"
-
-static NSTimeInterval const kMetadataLoadingTimeout = 15.0;
-static NSString * const kArtistLoadingTestURI = @"spotify:artist:26dSoYclwsYLMAKD3tpOr4"; // Britney Spears
-static NSString * const kArtistBrowseLoadingTestURI = @"spotify:artist:5zzrJD2jXrE9dZ1AklRFcL"; //KT Tunstall
-static NSString * const kAlbumLoadingTestURI = @"spotify:album:50KUdiSuV2MmBmreFPl3PE"; // Barenaked Ladies Live
-static NSString * const kAlbumBrowseLoadingTestURI = @"spotify:album:7IH5SRyEVemZWfhjYmWtT1"; //Wall-E Soundtrack
-static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cMIXrVD"; // Spotify Test Track
+#import "TestConstants.h"
 
 @implementation SPMetadataTests
 
@@ -58,7 +52,7 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 							 
 							 SPTestAssert(artist != nil, @"%@ returned nil artist", kArtistLoadingTestURI);
 							 
-							 [SPAsyncLoading waitUntilLoaded:artist timeout:kMetadataLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+							 [SPAsyncLoading waitUntilLoaded:artist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 								 SPTestAssert(notLoadedItems.count == 0, @"Artist loading timed out for %@", artist);
 								 SPTestAssert(artist.name.length != 0, @"Artist has no name");
 								 SPPassTest();
@@ -74,7 +68,7 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 						  
 						  SPTestAssert(album != nil, @"%@ returned nil album", kAlbumLoadingTestURI);
 						  
-						  [SPAsyncLoading waitUntilLoaded:album timeout:kMetadataLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+						  [SPAsyncLoading waitUntilLoaded:album timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 							  SPTestAssert(notLoadedItems.count == 0, @"Album loading timed out for %@", album);
 							  SPTestAssert(album.name.length != 0, @"Album has no name");
 							  SPTestAssert(album.artist != nil, @"Album has no artist");
@@ -92,7 +86,7 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 								 
 								 SPTestAssert(dispatch_get_current_queue() == dispatch_get_main_queue(), @"browseArtistAtURL callback on wrong queue.");
 								 
-								 [SPAsyncLoading waitUntilLoaded:artistBrowse timeout:kMetadataLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+								 [SPAsyncLoading waitUntilLoaded:artistBrowse timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 									 SPTestAssert(notLoadedItems.count == 0, @"ArtistBrowse loading timed out for %@", artistBrowse);
 									 SPTestAssert(artistBrowse.loadError == nil, @"ArtistBrowse encountered load error: %@", artistBrowse.loadError);
 									 SPTestAssert(artistBrowse.albums.count != 0, @"ArtistBrowse has no albums");
@@ -110,7 +104,7 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 							   
 							   SPTestAssert(dispatch_get_current_queue() == dispatch_get_main_queue(), @"browseAlbumAtURL callback on wrong queue.");
 							   
-							   [SPAsyncLoading waitUntilLoaded:albumBrowse timeout:kMetadataLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+							   [SPAsyncLoading waitUntilLoaded:albumBrowse timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 								   SPTestAssert(notLoadedItems.count == 0, @"AlbumBrowse loading timed out for %@", albumBrowse);
 								   SPTestAssert(albumBrowse.loadError == nil, @"AlbumBrowse encountered load error: %@", albumBrowse.loadError);
 								   SPTestAssert(albumBrowse.tracks.count != 0, @"AlbumBrowse has no tracks");
@@ -126,7 +120,7 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 					inSession:[SPSession sharedSession]
 					 callback:^(SPTrack *track) {
 						 
-						 [SPAsyncLoading waitUntilLoaded:track timeout:kMetadataLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+						 [SPAsyncLoading waitUntilLoaded:track timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 							 SPTestAssert(notLoadedItems.count == 0, @"Track loading timed out for %@", track);
 							 SPTestAssert(track.artists.count != 0, @"Track has no artists");
 							 SPTestAssert(track.album != nil, @"Track has no album");
@@ -144,10 +138,10 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 						  
 						  SPTestAssert(album != nil, @"%@ returned nil album", kAlbumLoadingTestURI);
 						  
-						  [SPAsyncLoading waitUntilLoaded:album timeout:kMetadataLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+						  [SPAsyncLoading waitUntilLoaded:album timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 							  SPTestAssert(notLoadedItems.count == 0, @"Album loading timed out for %@", album);
 							
-							  [SPAsyncLoading waitUntilLoaded:album.cover timeout:kMetadataLoadingTimeout then:^(NSArray *loadedCover, NSArray *notLoadedCover) {
+							  [SPAsyncLoading waitUntilLoaded:album.cover timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedCover, NSArray *notLoadedCover) {
 								  SPTestAssert(notLoadedCover.count == 0, @"Cover loading timed out for %@", album.cover);
 								  SPTestAssert(album.cover.image != nil, @"Cover is loaded but has no image");
 								  SPPassTest();
@@ -160,7 +154,7 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 	
 	SPToplist *userToplist = [SPToplist toplistForCurrentUserInSession:[SPSession sharedSession]];
 	
-	[SPAsyncLoading waitUntilLoaded:userToplist timeout:kMetadataLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+	[SPAsyncLoading waitUntilLoaded:userToplist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 		SPTestAssert(notLoadedItems.count == 0, @"TopList loading timed out for %@", userToplist);
 		SPTestAssert(userToplist.loadError == nil, @"TopList encountered loading error: %@", userToplist.loadError);
 		// User can disable publishing of parts of their toplist, so we can't depend on there being anything in it.
@@ -173,7 +167,7 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 	
 	SPToplist *localeToplist = [SPToplist toplistForLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"SE"] inSession:[SPSession sharedSession]];
 	
-	[SPAsyncLoading waitUntilLoaded:localeToplist timeout:kMetadataLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+	[SPAsyncLoading waitUntilLoaded:localeToplist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 		SPTestAssert(notLoadedItems.count == 0, @"TopList loading timed out for %@", localeToplist);
 		SPTestAssert(localeToplist.loadError == nil, @"TopList encountered loading error: %@", localeToplist.loadError);
 		SPTestAssert(localeToplist.artists.count > 0, @"TopList has no artists");

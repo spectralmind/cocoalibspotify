@@ -32,6 +32,8 @@
 
 #import <Foundation/Foundation.h>
 
+static NSTimeInterval const kSPAsyncLoadingDefaultTimeout = 20.0;
+
 /** Provides standard protocol for CocoaLibSpotify metadata objects to load. */
 
 @protocol SPAsyncLoading <NSObject>
@@ -59,18 +61,6 @@ typedef enum SPAsyncLoadingPolicy {
 
 @interface SPAsyncLoading : NSObject
 
-/** Call the provided callback block when all passed items are loaded.
- 
- This will trigger a load if the item's session's loading policy is `SPAsyncLoadingManual`.
- 
- The callback block will be triggered immediately if no items are provided 
- or all provided items are already loaded.
- 
- @param itemOrItems A single item of an array of items conforming to the `SPAsyncLoading` protocol.
- @param block The block to call when all given items are loaded.
- */
-+(void)waitUntilLoaded:(id)itemOrItems then:(void (^)(NSArray *))block;
-
 /** Call the provided callback block when all passed items are loaded or the
  given timeout is reached.
  
@@ -80,7 +70,7 @@ typedef enum SPAsyncLoadingPolicy {
  or all provided items are already loaded.
  
  @param itemOrItems A single item of an array of items conforming to the `SPAsyncLoading` protocol.
- @param timeout Time to allow before timing out.
+ @param timeout Time to allow before timing out. This should be the maximum reasonable time your application can wait, or `kSPAsyncLoadingDefaultTimeout`.
  @param block The block to call when all given items are loaded or the timeout is reached.
  */
 +(void)waitUntilLoaded:(id)itemOrItems timeout:(NSTimeInterval)timeout then:(void (^)(NSArray *loadedItems, NSArray *notLoadedItems))block;

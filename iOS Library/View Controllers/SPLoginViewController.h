@@ -56,6 +56,11 @@
  
  @warning *Important:* You must also include the provided `SPLoginResources.bundle` bundle 
  as a resource in your application to use this class.
+ 
+ If you want to save the user's details for automatic login, use the appropriate `SPSession`
+ delegate method to receive login credentials for storage (don't store the user's raw password),
+ then login directly next time using the saved credentias instead of using this view controller.
+ If login fails, display the appropriate error and you can then show this view controller for logging in manually again if needed.
  */
 @interface SPLoginViewController : UINavigationController <SPSignupPageDelegate> {
 	SPSession *session;
@@ -72,6 +77,9 @@
 
 /** Returns whether the view controller allows the user to cancel the login process or not. Defaults to `YES`. */
 @property (nonatomic, readwrite) BOOL allowsCancel;
+
+/** Returns whether the view controller dismisses itself after the user successfully logs in. Defaults to `YES`. */
+@property (nonatomic, readwrite) BOOL dismissesAfterLogin;
 
 /** Returns the controller's loginDelegate object. */
 @property (nonatomic, readwrite, unsafe_unretained) id <SPLoginViewControllerDelegate> loginDelegate;

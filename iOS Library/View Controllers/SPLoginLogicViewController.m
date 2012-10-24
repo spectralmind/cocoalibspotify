@@ -65,7 +65,6 @@
 @synthesize backgroundImageView;
 @synthesize loginFormView;
 @synthesize allowsCancel;
-@synthesize remembersCredentials;
 @synthesize cancelButton;
 @synthesize loginButton;
 
@@ -87,11 +86,6 @@
 		
 		[self addObserver:self
 			   forKeyPath:@"allowsCancel"
-				  options:0
-				  context:nil];
-		
-		[self addObserver:self
-			   forKeyPath:@"allowsAutomaticLoginToggle"
 				  options:0
 				  context:nil];
 	}
@@ -131,14 +125,13 @@
 											  cancelButtonTitle:@"OK"
 											  otherButtonTitles:nil];
 		[alert show];
-		
+
 		return;
 	}
-	
+
 	[self.session attemptLoginWithUserName:self.usernameField.text
-								  password:self.passwordField.text
-					   rememberCredentials:self.remembersCredentials];
-	
+                                password:self.passwordField.text];
+
 	[self switchViewToLoggingInState:YES];
 	
 }
@@ -293,9 +286,6 @@
 	self.navigationItem.rightBarButtonItem = self.loginButton;
 	[self positionLoggingInView];
 	[self switchViewToLoggingInState:NO];
-	[self.session fetchStoredCredentialsUserName:^(NSString *username) {
-		self.usernameField.text = username;
-	}];
 	
 	[self.usernameField becomeFirstResponder];
 }
@@ -323,12 +313,16 @@
 }
 
 -(void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+
 	previousStyle = [[UIApplication sharedApplication] statusBarStyle];
 	[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackOpaque animated:animated];
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
 	[[UIApplication sharedApplication] setStatusBarStyle:previousStyle animated:animated];
+
+    [super viewWillDisappear:animated];
 }
 
 - (void)viewDidUnload
@@ -371,7 +365,6 @@
 
 - (void)dealloc {
 	
-	[self removeObserver:self forKeyPath:@"allowsAutomaticLoginToggle"];
 	[self removeObserver:self forKeyPath:@"allowsCancel"];
 	
 	[[NSNotificationCenter defaultCenter] removeObserver:self

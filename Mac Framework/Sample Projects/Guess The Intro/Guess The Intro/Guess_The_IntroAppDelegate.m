@@ -144,8 +144,7 @@ static NSTimeInterval const kGameCountdownThreshold = 30.0;
 		[[passwordField stringValue] length] > 0) {
 		
 		[[SPSession sharedSession] attemptLoginWithUserName:[userNameField stringValue]
-												   password:[passwordField stringValue]
-										rememberCredentials:NO];
+												   password:[passwordField stringValue]];
 	} else {
 		NSBeep();
 	}
@@ -241,12 +240,12 @@ static NSTimeInterval const kGameCountdownThreshold = 30.0;
 
 -(void)waitAndFillTrackPool {
 	
-	[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession] then:^(NSArray *loadedession) {
+	[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession] timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedession, NSArray *notLoadedSession) {
 		
 		// The session is logged in and loaded — now wait for the userPlaylists to load.
 		NSLog(@"[%@ %@]: %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), @"Session loaded.");
 		
-		[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession].userPlaylists then:^(NSArray *loadedContainers) {
+		[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession].userPlaylists timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedContainers, NSArray *notLoadedContainers) {
 			
 			// User playlists are loaded — wait for playlists to load their metadata.
 			NSLog(@"[%@ %@]: %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), @"Container loaded.");
@@ -256,7 +255,7 @@ static NSTimeInterval const kGameCountdownThreshold = 30.0;
 			[playlists addObject:[SPSession sharedSession].inboxPlaylist];
 			[playlists addObjectsFromArray:[SPSession sharedSession].userPlaylists.flattenedPlaylists];
 			
-			[SPAsyncLoading waitUntilLoaded:playlists timeout:3.0 then:^(NSArray *loadedPlaylists, NSArray *notLoadedPlaylists) {
+			[SPAsyncLoading waitUntilLoaded:playlists timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedPlaylists, NSArray *notLoadedPlaylists) {
 				
 				// All of our playlists have loaded their metadata — wait for all tracks to load their metadata.
 				NSLog(@"[%@ %@]: %@ of %@ playlists loaded.", NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
@@ -265,7 +264,7 @@ static NSTimeInterval const kGameCountdownThreshold = 30.0;
 				NSArray *playlistItems = [loadedPlaylists valueForKeyPath:@"@unionOfArrays.items"];
 				NSArray *tracks = [self tracksFromPlaylistItems:playlistItems];
 				
-				[SPAsyncLoading waitUntilLoaded:tracks timeout:3.0 then:^(NSArray *loadedTracks, NSArray *notLoadedTracks) {
+				[SPAsyncLoading waitUntilLoaded:tracks timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedTracks, NSArray *notLoadedTracks) {
 					
 					// All of our tracks have loaded their metadata. Hooray!
 					NSLog(@"[%@ %@]: %@ of %@ tracks loaded.", NSStringFromClass([self class]), NSStringFromSelector(_cmd), 
@@ -518,8 +517,7 @@ static NSTimeInterval const kGameCountdownThreshold = 30.0;
 					 defaultButton:@"Again!"
 				   alternateButton:@"Quit"
 					   otherButton:@""
-		 informativeTextWithFormat:[NSString stringWithFormat:@"You scored %@ points!", 
-									[formatter stringFromNumber:[NSNumber numberWithInteger:self.score]]]]
+		 informativeTextWithFormat:@"You scored %@ points!", [formatter stringFromNumber:[NSNumber numberWithInteger:self.score]]]
 	 runModal];
 	
 	if (result == NSAlertDefaultReturn) {

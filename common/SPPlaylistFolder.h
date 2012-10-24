@@ -62,7 +62,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @property (nonatomic, readonly, assign) __unsafe_unretained SPPlaylistContainer *parentContainer;
 
 /* Returns the folder's parent folder, or `nil` if the folder is at the top level of its container. */
-@property (nonatomic, readonly) __weak SPPlaylistFolder *parentFolder;
+@property (nonatomic, readonly, assign) __unsafe_unretained SPPlaylistFolder *parentFolder;
 
 /* Returns the folder's parent folder stack, or `nil` if the folder is at the top level of its container. */
 -(NSArray *)parentFolders;

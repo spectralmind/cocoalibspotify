@@ -33,9 +33,7 @@
 #import "SPAudioDeliveryTests.h"
 #import "SPAsyncLoading.h"
 #import "SPTrack.h"
-
-static NSTimeInterval const kAudioDeliveryTimeout = 15.0;
-static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cMIXrVD"; // Spotify Test Track
+#import "TestConstants.h"
 
 @implementation SPAudioDeliveryTests {
 	BOOL gotAudioDelivery;
@@ -51,7 +49,7 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 						 
 						 SPTestAssert(track != nil, @"Track is nil for %@", track);
 						 
-						 [SPAsyncLoading waitUntilLoaded:track timeout:kAudioDeliveryTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+						 [SPAsyncLoading waitUntilLoaded:track timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 							 SPTestAssert(notLoadedItems.count == 0, @"Track loading timed out for %@", track);
 							 
 							 SPSession *session = [SPSession sharedSession];
@@ -60,7 +58,7 @@ static NSString * const kTrackLoadingTestURI = @"spotify:track:5iIeIeH3LBSMK92cM
 							 
 							 [session playTrack:track callback:^(NSError *error) {
 								 SPTestAssert(error == nil, @"Track playback encountered error: %@", error);
-								 [self performSelector:@selector(timeOutAudioDeliveryTest) withObject:nil afterDelay:kAudioDeliveryTimeout];
+								 [self performSelector:@selector(timeOutAudioDeliveryTest) withObject:nil afterDelay:kSPAsyncLoadingDefaultTimeout];
 							 }];
 						 }];
 					 }];

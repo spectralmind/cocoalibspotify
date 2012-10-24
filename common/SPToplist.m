@@ -86,9 +86,9 @@ void toplistbrowse_tracks_complete(sp_toplistbrowse *result, void *userdata) {
 		}
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
-			toplist.tracksLoaded = tracksAreLoaded;
 			toplist.loadError = error;
 			toplist.tracks = newTracks;
+			toplist.tracksLoaded = tracksAreLoaded;
 		});
 	}
 }
@@ -120,9 +120,9 @@ void toplistbrowse_artists_complete(sp_toplistbrowse *result, void *userdata) {
 		}
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
-			toplist.artistsLoaded = artistsAreLoaded;
 			toplist.loadError = error;
 			toplist.artists = newArtists;
+			toplist.artistsLoaded = artistsAreLoaded;
 		});
 	}
 }
@@ -154,9 +154,9 @@ void toplistbrowse_albums_complete(sp_toplistbrowse *result, void *userdata) {
 		}
 		
 		dispatch_async(dispatch_get_main_queue(), ^{
-			toplist.albumsLoaded = albumsAreLoaded;
 			toplist.loadError = error;
 			toplist.albums = newAlbums;
+			toplist.albumsLoaded = albumsAreLoaded;
 		});
 	}
 }
@@ -317,7 +317,7 @@ void toplistbrowse_albums_complete(sp_toplistbrowse *result, void *userdata) {
 	return _trackBrowseOperation;
 }
 
-+(NSSet *)keyPathsForValuesAffectingIsLoaded {
++(NSSet *)keyPathsForValuesAffectingLoaded {
 	return [NSSet setWithObjects:@"tracksLoaded", @"albumsLoaded", @"artistsLoaded", nil];
 }
 

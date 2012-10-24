@@ -388,11 +388,20 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
 	
 	UInt32 maxFramesPerSlice = 4096;
 	status = AudioUnitSetProperty(inputConverterUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFramesPerSlice, sizeof(maxFramesPerSlice));
-	status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFramesPerSlice, sizeof(maxFramesPerSlice));
-	status = AudioUnitSetProperty(outputUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFramesPerSlice, sizeof(maxFramesPerSlice));
-	
 	if (status != noErr) {
-		fillWithError(err, @"Couldn't set max frames per slice", status);
+		fillWithError(err, @"Couldn't set max frames per slice on input converter", status);
+        return NO;
+	}
+	
+	status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFramesPerSlice, sizeof(maxFramesPerSlice));
+	if (status != noErr) {
+		fillWithError(err, @"Couldn't set max frames per slice on mixer", status);
+        return NO;
+	}
+	
+	status = AudioUnitSetProperty(outputUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFramesPerSlice, sizeof(maxFramesPerSlice));
+	if (status != noErr) {
+		fillWithError(err, @"Couldn't set max frames per slice on output", status);
         return NO;
 	}
 	

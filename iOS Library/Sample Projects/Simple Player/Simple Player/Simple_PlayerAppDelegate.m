@@ -155,7 +155,7 @@
 			
 			if (track != nil) {
 				
-				[SPAsyncLoading waitUntilLoaded:track then:^(NSArray *tracks) {
+				[SPAsyncLoading waitUntilLoaded:track timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *tracks, NSArray *notLoadedTracks) {
 					[self.playbackManager playTrack:track callback:^(NSError *error) {
 						
 						if (error) {

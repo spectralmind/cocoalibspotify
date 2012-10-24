@@ -116,4 +116,15 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	ofNewParent:(SPPlaylistFolder *)aParentFolderOrNil
 	   callback:(SPErrorableOperationCallback)block;
 
+/** Subscribe to the given playlist.
+
+ The operation will fail if the given playlist is owned by the current user or is 
+ already subscribed (i.e., you can't subscribe to a playlist twice). To unsubscibe,
+ user `-[SPPlaylistContainer removeItem:callback:]`.
+
+ @param playlist The Playlist to subscribe to.
+ @param block The callback block to execute when the operation has completed.
+ */
+-(void)subscribeToPlaylist:(SPPlaylist *)playlist callback:(SPErrorableOperationCallback)block;
+
 @end

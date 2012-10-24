@@ -67,7 +67,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @property (nonatomic, readwrite) sp_playlist *playlist;
 @property (nonatomic, readwrite, assign) __unsafe_unretained SPSession *session;
 @property (nonatomic, readwrite, strong) SPPlaylistCallbackProxy *callbackProxy;
-@property (nonatomic, readwrite, copy) NSArray *items;
+@property (atomic, readwrite, copy) NSArray *items;
 
 @property (nonatomic, readwrite, strong) NSMutableArray *moveCallbackStack;
 @property (nonatomic, readwrite, strong) NSMutableArray *addCallbackStack;
@@ -76,6 +76,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -(void)loadPlaylistData;
 -(void)rebuildSubscribers;
 -(void)resetItemIndexes;
+-(NSArray *)playlistSnapshot;
 
 -(void)setPlaylistNameFromLibSpotifyUpdate:(NSString *)newName;
 -(void)setPlaylistDescriptionFromLibSpotifyUpdate:(NSString *)newDescription;
@@ -91,15 +92,24 @@ static void tracks_added(sp_playlist *pl, sp_track *const *tracks, int num_track
 	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
 	SPPlaylist *playlist = proxy.playlist;
 	if (!playlist) return;
-	
+
+	// Since we do callbacks on a different thread, we need to make sure
+	// stuff isn't changing in the meantime. If it does change, bail out
+	// of the fine-grained stuff.
+	NSArray *itemsAtCallbackTime = playlist.items;
+	NSArray *itemSnapshot = [playlist playlistSnapshot];
+	BOOL indexesAreValid = (position <= itemsAtCallbackTime.count);
+
 	NSMutableArray *newItems = [NSMutableArray arrayWithCapacity:num_tracks];
-	
-	for (NSUInteger currentItem = 0; currentItem < num_tracks; currentItem++) {
-		sp_track *thisTrack = tracks[currentItem];
-		if (thisTrack != NULL) {
-			[newItems addObject:[[SPPlaylistItem alloc] initWithPlaceholderTrack:thisTrack
-																		  atIndex:(int)position + (int)currentItem
-																	   inPlaylist:playlist]];
+
+	if (indexesAreValid) {
+		for (NSUInteger currentItem = 0; currentItem < num_tracks; currentItem++) {
+			sp_track *thisTrack = tracks[currentItem];
+			if (thisTrack != NULL) {
+				[newItems addObject:[[SPPlaylistItem alloc] initWithPlaceholderTrack:thisTrack
+																			 atIndex:(int)position + (int)currentItem
+																		  inPlaylist:playlist]];
+			}
 		}
 	}
 	
@@ -108,24 +118,41 @@ static void tracks_added(sp_playlist *pl, sp_track *const *tracks, int num_track
 		callback = [playlist.addCallbackStack objectAtIndex:0];
 		[playlist.addCallbackStack removeObjectAtIndex:0];
 	}
-	
+
 	dispatch_async(dispatch_get_main_queue(), ^{
-		
-		NSIndexSet *incomingIndexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(position, [newItems count])];
-		
-		if ([[playlist delegate] respondsToSelector:@selector(playlist:willAddItems:atIndexes:)]) {
-			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willAddItems:newItems atIndexes:incomingIndexes];
+
+		if ([itemsAtCallbackTime isEqualToArray:playlist.items] && indexesAreValid) {
+
+			NSIndexSet *incomingIndexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(position, [newItems count])];
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlist:willAddItems:atIndexes:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willAddItems:newItems atIndexes:incomingIndexes];
+			}
+
+			NSMutableArray *mutableItems = [playlist.items mutableCopy];
+			[mutableItems insertObjects:newItems atIndexes:incomingIndexes];
+			playlist.items = [NSArray arrayWithArray:mutableItems];
+			[playlist resetItemIndexes];
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlist:didAddItems:atIndexes:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didAddItems:newItems atIndexes:incomingIndexes];
+			}
+
+		} else {
+			// Our items changed out underneath us.
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlistWillChangeItems:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlistWillChangeItems:playlist];
+			}
+
+			playlist.items = itemSnapshot;
+			[playlist resetItemIndexes];
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlistDidChangeItems:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlistDidChangeItems:playlist];
+			}
 		}
-		
-		NSMutableArray *mutableItems = [playlist.items mutableCopy];
-		[mutableItems insertObjects:newItems atIndexes:incomingIndexes];
-		playlist.items = [NSArray arrayWithArray:mutableItems];
-		[playlist resetItemIndexes];
-		
-		if ([[playlist delegate] respondsToSelector:@selector(playlist:didAddItems:atIndexes:)]) {
-			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didAddItems:newItems atIndexes:incomingIndexes];
-		}
-		
+
 		if (callback) callback(nil);
 	});
 }
@@ -136,12 +163,24 @@ static void	tracks_removed(sp_playlist *pl, const int *tracks, int num_tracks, v
 	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
 	SPPlaylist *playlist = proxy.playlist;
 	if (!playlist) return;
+
+	// Since we do callbacks on a different thread, we need to make sure
+	// stuff isn't changing in the meantime. If it does change, bail out
+	// of the fine-grained stuff.
+	NSArray *itemsAtCallbackTime = playlist.items;
+	NSArray *itemSnapshot = [playlist playlistSnapshot];
+	BOOL indexesAreValid = YES;
 	
 	NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
 	
 	for (NSUInteger currentIndex = 0; currentIndex < num_tracks; currentIndex++) {
 		int thisIndex = tracks[currentIndex];
-		[indexes addIndex:thisIndex];
+		if (thisIndex < itemsAtCallbackTime.count) {
+			[indexes addIndex:thisIndex];
+		} else {
+			indexesAreValid = NO;
+			break;
+		}
 	}
 	
 	SPErrorableOperationCallback callback = nil;
@@ -151,20 +190,37 @@ static void	tracks_removed(sp_playlist *pl, const int *tracks, int num_tracks, v
 	}
 	
 	dispatch_async(dispatch_get_main_queue(), ^{
-		
-		NSArray *outgoingItems = [playlist.items objectsAtIndexes:indexes];
-		
-		if ([[playlist delegate] respondsToSelector:@selector(playlist:willRemoveItems:atIndexes:)]) {
-			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willRemoveItems:outgoingItems atIndexes:indexes];
-		}
-		
-		NSMutableArray *mutableItems = [playlist.items mutableCopy];
-		[mutableItems removeObjectsAtIndexes:indexes];
-		playlist.items = [NSArray arrayWithArray:mutableItems];
-		[playlist resetItemIndexes];
-		
-		if ([[playlist delegate] respondsToSelector:@selector(playlist:didRemoveItems:atIndexes:)]) {
-			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didRemoveItems:outgoingItems atIndexes:indexes];
+
+		if ([itemsAtCallbackTime isEqualToArray:playlist.items] && indexesAreValid) {
+			
+			NSArray *outgoingItems = [playlist.items objectsAtIndexes:indexes];
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlist:willRemoveItems:atIndexes:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willRemoveItems:outgoingItems atIndexes:indexes];
+			}
+
+			NSMutableArray *mutableItems = [playlist.items mutableCopy];
+			[mutableItems removeObjectsAtIndexes:indexes];
+			playlist.items = [NSArray arrayWithArray:mutableItems];
+			[playlist resetItemIndexes];
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlist:didRemoveItems:atIndexes:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didRemoveItems:outgoingItems atIndexes:indexes];
+			}
+
+		} else {
+			// Our items changed out underneath us.
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlistWillChangeItems:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlistWillChangeItems:playlist];
+			}
+			
+			playlist.items = itemSnapshot;
+			[playlist resetItemIndexes];
+			
+			if ([[playlist delegate] respondsToSelector:@selector(playlistDidChangeItems:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlistDidChangeItems:playlist];
+			}
 		}
 		
 		if (callback) callback(nil);
@@ -177,15 +233,24 @@ static void	tracks_moved(sp_playlist *pl, const int *tracks, int num_tracks, int
 	SPPlaylistCallbackProxy *proxy = (__bridge SPPlaylistCallbackProxy *)userdata;
 	SPPlaylist *playlist = proxy.playlist;
 	if (!playlist) return;
-	
+
+	// Since we do callbacks on a different thread, we need to make sure
+	// stuff isn't changing in the meantime. If it does change, bail out
+	// of the fine-grained stuff.
+	NSArray *itemsAtCallbackTime = playlist.items;
+	NSArray *itemSnapshot = [playlist playlistSnapshot];
+	BOOL indexesAreValid = (new_position <= itemsAtCallbackTime.count);
+
 	NSMutableIndexSet *indexes = [NSMutableIndexSet indexSet];
 	NSUInteger newStartIndex = new_position;
-	
-	for (NSUInteger currentIndex = 0; currentIndex < num_tracks; currentIndex++) {
-		int thisIndex = tracks[currentIndex];
-		[indexes addIndex:thisIndex];
-		if (thisIndex < new_position) {
-			newStartIndex--;
+
+	if (indexesAreValid) {
+		for (NSUInteger currentIndex = 0; currentIndex < num_tracks; currentIndex++) {
+			int thisIndex = tracks[currentIndex];
+			[indexes addIndex:thisIndex];
+			if (thisIndex < new_position) {
+				newStartIndex--;
+			}
 		}
 	}
 	
@@ -194,28 +259,44 @@ static void	tracks_moved(sp_playlist *pl, const int *tracks, int num_tracks, int
 		callback = [playlist.moveCallbackStack objectAtIndex:0];
 		[playlist.moveCallbackStack removeObjectAtIndex:0];
 	}
-	
+
 	dispatch_async(dispatch_get_main_queue(), ^{
-		
-		NSMutableArray *playlistItems = [playlist.items mutableCopy];
-		NSArray *movedItems = [playlistItems objectsAtIndexes:indexes];
-		NSMutableIndexSet *newIndexes = [NSMutableIndexSet indexSetWithIndexesInRange:NSMakeRange(newStartIndex, [movedItems count])];
-		
-		if ([[playlist delegate] respondsToSelector:@selector(playlist:willMoveItems:atIndexes:toIndexes:)]) {
-			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willMoveItems:movedItems atIndexes:indexes toIndexes:newIndexes];
+
+		if ([itemsAtCallbackTime isEqualToArray:playlist.items] && indexesAreValid) {
+
+			NSMutableArray *playlistItems = [playlist.items mutableCopy];
+			NSArray *movedItems = [playlistItems objectsAtIndexes:indexes];
+			NSMutableIndexSet *newIndexes = [NSMutableIndexSet indexSetWithIndexesInRange:NSMakeRange(newStartIndex, [movedItems count])];
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlist:willMoveItems:atIndexes:toIndexes:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist willMoveItems:movedItems atIndexes:indexes toIndexes:newIndexes];
+			}
+
+			NSMutableArray *newItemArray = [NSMutableArray arrayWithArray:playlistItems];
+			[newItemArray removeObjectsAtIndexes:indexes];
+			[newItemArray insertObjects:movedItems atIndexes:newIndexes];
+
+			playlist.items = [NSArray arrayWithArray:newItemArray];
+			[playlist resetItemIndexes];
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlist:didMoveItems:atIndexes:toIndexes:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didMoveItems:movedItems atIndexes:indexes toIndexes:newIndexes];
+			}
+
+		} else {
+			// Our items changed out underneath us.
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlistWillChangeItems:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlistWillChangeItems:playlist];
+			}
+
+			playlist.items = itemSnapshot;
+			[playlist resetItemIndexes];
+
+			if ([[playlist delegate] respondsToSelector:@selector(playlistDidChangeItems:)]) {
+				[(id <SPPlaylistDelegate>)[playlist delegate] playlistDidChangeItems:playlist];
+			}
 		}
-		
-		NSMutableArray *newItemArray = [NSMutableArray arrayWithArray:playlistItems];
-		[newItemArray removeObjectsAtIndexes:indexes];
-		[newItemArray insertObjects:movedItems atIndexes:newIndexes];
-		
-		playlist.items = [NSArray arrayWithArray:newItemArray];
-		[playlist resetItemIndexes];
-		
-		if ([[playlist delegate] respondsToSelector:@selector(playlist:didMoveItems:atIndexes:toIndexes:)]) {
-			[(id <SPPlaylistDelegate>)[playlist delegate] playlist:playlist didMoveItems:movedItems atIndexes:indexes toIndexes:newIndexes];
-		}
-		
 		 if (callback) callback(nil);
 	});
 }
@@ -669,7 +750,7 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 	
 		sp_subscribers *subs = sp_playlist_subscribers(self.playlist);
 		NSUInteger actualSubscriberCount = subs->count;
-		NSMutableArray *newSubscribers = [NSMutableArray arrayWithCapacity:actualSubscriberCount];
+		NSMutableArray *mutableSubscribers = [NSMutableArray arrayWithCapacity:actualSubscriberCount];
 		
 		for (NSUInteger currentSubscriber = 0; currentSubscriber < actualSubscriberCount; currentSubscriber++) {
 			
@@ -677,11 +758,11 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 			if (subscriberName != NULL && strlen(subscriberName) > 0) {
 				NSString *subsName = [NSString stringWithUTF8String:subscriberName];
 				if (subsName != nil)
-					[newSubscribers addObject:subsName];
+					[mutableSubscribers addObject:subsName];
 			}
 		}
 		
-		newSubscribers = [NSArray arrayWithArray:newSubscribers];
+		newSubscribers = [NSArray arrayWithArray:mutableSubscribers];
 		sp_playlist_subscribers_free(subs);
 		
 	}
@@ -705,7 +786,7 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 	int itemCount = sp_playlist_num_tracks(self.playlist);
 	NSMutableArray *newitems = [NSMutableArray arrayWithCapacity:itemCount];
 	
-	for (NSUInteger currentItem = 0; currentItem < itemCount; currentItem++) {
+	for (int currentItem = 0; currentItem < itemCount; currentItem++) {
 		sp_track *thisTrack = sp_playlist_track(self.playlist, currentItem);
 		if (thisTrack != NULL) {
 			[newitems addObject:[[SPPlaylistItem alloc] initWithPlaceholderTrack:thisTrack
@@ -737,7 +818,7 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 		// libSpotify iterates through the array and inserts each track at the given index, 
 		// which ends up reversing the expected order. Defeat this by constructing a backwards
 		// array.
-		for (int currentTrack = newItems.count - 1; currentTrack >= 0; currentTrack--) {
+		for (int currentTrack = (int)newItems.count - 1; currentTrack >= 0; currentTrack--) {
 			
 			sp_track *track;
 			id item = [newItems objectAtIndex:currentTrack];
@@ -754,7 +835,7 @@ static NSString * const kSPPlaylistKVOContext = @"kSPPlaylistKVOContext";
 		if (block)
 			[self.addCallbackStack addObject:block];
 		
-		sp_error errorCode = sp_playlist_add_tracks(self.playlist, trackPointer, newItems.count, (int)index, self.session.session);
+		sp_error errorCode = sp_playlist_add_tracks(self.playlist, trackPointer, (int)newItems.count, (int)index, self.session.session);
 		free(tracks);
 		tracks = NULL;
 		

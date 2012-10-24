@@ -115,8 +115,7 @@
 		[[passwordField stringValue] length] > 0) {
 		
 		[[SPSession sharedSession] attemptLoginWithUserName:[userNameField stringValue]
-												   password:[passwordField stringValue]
-										rememberCredentials:NO];
+												   password:[passwordField stringValue]];
 	} else {
 		NSBeep();
 	}
@@ -171,19 +170,13 @@
 		[[SPSession sharedSession] trackForURL:trackURL callback:^(SPTrack *track) {
 			if (track != nil) {
 				
-				if (!track.isLoaded) {
-					// Since we're trying to play a brand new track that may not be loaded, 
-					// we may have to wait for a moment before playing. Tracks that are present 
-					// in the user's "library" (playlists, starred, inbox, etc) are automatically loaded
-					// on login. All this happens on an internal thread, so we'll just try again in a moment.
-					[self performSelector:@selector(playTrack:) withObject:sender afterDelay:0.1];
-					return;
-				}
-				
-				[self.playbackManager playTrack:track callback:^(NSError *error) {
-					if (error) [self.window presentError:error];
+				[SPAsyncLoading waitUntilLoaded:track timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *tracks, NSArray *notLoadedTracks) {
+					[self.playbackManager playTrack:track callback:^(NSError *error) {
+						if (error)
+							[self.window presentError:error];
+
+					}];
 				}];
-				return;
 			}
 		}];
 		return;

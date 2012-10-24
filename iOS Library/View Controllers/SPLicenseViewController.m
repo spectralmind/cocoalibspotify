@@ -85,6 +85,10 @@ static NSString * const kSPLicensesFormatter = @"http://www.spotify.com/mobile/e
 	self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
 																							target:self
 																							action:@selector(done)];
+	
+	self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+	self.spinner.hidesWhenStopped = YES;
+	
 	CGRect bounds = CGRectMake(0, 0, 320, 460);
 	UIWebView *web = [[UIWebView alloc] initWithFrame:bounds];
 	web.delegate = self;
@@ -104,11 +108,7 @@ static NSString * const kSPLicensesFormatter = @"http://www.spotify.com/mobile/e
 	}
 	
 	self.view = web;
-	
-	self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-	self.spinner.hidesWhenStopped = YES;
 	[self.view addSubview:self.spinner];
-	
 }
 
 -(void)viewWillAppear:(BOOL)animated {
@@ -132,7 +132,6 @@ static NSString * const kSPLicensesFormatter = @"http://www.spotify.com/mobile/e
     }
 
 	// Show error page if license didn't load
-
 	NSURL *bundlePath = [[NSBundle mainBundle] URLForResource:@"SPLoginResources" withExtension:@"bundle"];
 	NSBundle *resourcesBundle = [NSBundle bundleWithURL:bundlePath];
 	

@@ -47,22 +47,6 @@ static NSMutableArray *observerCache;
 
 @implementation SPAsyncLoading
 
-+(void)waitUntilLoaded:(id)itemOrItems then:(void (^)(NSArray *))block {
-	
-	NSArray *itemArray = [itemOrItems isKindOfClass:[NSArray class]] ? itemOrItems : [NSArray arrayWithObject:itemOrItems];
-	
-	SPAsyncLoading *observer = [[SPAsyncLoading alloc] initWithItems:itemArray
-														 loadedBlock:block];
-	
-	if (observer) {
-		if (observerCache == nil) observerCache = [[NSMutableArray alloc] init];
-		
-		@synchronized(observerCache) {
-			[observerCache addObject:observer];
-		}
-	}
-}
-
 +(void)waitUntilLoaded:(id)itemOrItems timeout:(NSTimeInterval)timeout then:(void (^)(NSArray *, NSArray *))block {
 	
 	NSArray *itemArray = [itemOrItems isKindOfClass:[NSArray class]] ? itemOrItems : [NSArray arrayWithObject:itemOrItems];

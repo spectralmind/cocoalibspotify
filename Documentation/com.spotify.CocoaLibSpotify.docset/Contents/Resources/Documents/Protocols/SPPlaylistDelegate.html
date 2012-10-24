@@ -58,6 +58,10 @@
 	
 	<option value="//api/name/playlist:willRemoveItems:atIndexes:">&nbsp;&nbsp;&nbsp;&nbsp;- playlist:willRemoveItems:atIndexes:</option>
 	
+	<option value="//api/name/playlistDidChangeItems:">&nbsp;&nbsp;&nbsp;&nbsp;- playlistDidChangeItems:</option>
+	
+	<option value="//api/name/playlistWillChangeItems:">&nbsp;&nbsp;&nbsp;&nbsp;- playlistWillChangeItems:</option>
+	
 	
 	
 </select>
@@ -79,6 +83,8 @@
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#task_Item Addition">Item Addition</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#task_Item Reordering">Item Reordering</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#task_Other Changes">Other Changes</a></span></li>
 	
 </ul></li>
 
@@ -105,6 +111,10 @@
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/playlist:willMoveItems:atIndexes:toIndexes:">playlist:willMoveItems:atIndexes:toIndexes:</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/playlist:willRemoveItems:atIndexes:">playlist:willRemoveItems:atIndexes:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/playlistDidChangeItems:">playlistDidChangeItems:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/playlistWillChangeItems:">playlistWillChangeItems:</a></span></li>
 	
 </ul></li>
 
@@ -229,6 +239,28 @@
 	<span class="tooltip">
 		<code><a href="#//api/name/playlist:didMoveItems:atIndexes:toIndexes:">&ndash;&nbsp;playlist:didMoveItems:atIndexes:toIndexes:</a></code>
 		<span class="tooltip"><p>Called after one or more items are moved within the playlist.</p></span>
+	</span>
+	
+	
+</li>
+						</ul>
+						
+						
+						<a title="Other Changes" name="task_Other Changes"></a>
+						<h3 class="subsubtitle task-title">Other Changes</h3>
+
+						<ul class="task-list">
+							<li>
+	<span class="tooltip">
+		<code><a href="#//api/name/playlistWillChangeItems:">&ndash;&nbsp;playlistWillChangeItems:</a></code>
+		<span class="tooltip"><p>Called before a change that isn&rsquo;t a simple add, remove or move operation to the items in the playlist.</p></span>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/playlistDidChangeItems:">&ndash;&nbsp;playlistDidChangeItems:</a></code>
+		<span class="tooltip"><p>Called after a change that isn&rsquo;t a simple add, remove or move operation to the items in the playlist.</p></span>
 	</span>
 	
 	
@@ -637,6 +669,94 @@
 	
 </div>
 						
+						<div class="section-method">
+	<a name="//api/name/playlistDidChangeItems:" title="playlistDidChangeItems:"></a>
+	<h3 class="subsubtitle method-title">playlistDidChangeItems:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Called after a change that isn&rsquo;t a simple add, remove or move operation to the items in the playlist.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>- (void)playlistDidChangeItems:(SPPlaylist *)<em>aPlaylist</em></code></div>
+	
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>aPlaylist</em></dt>
+			<dd><p>The playlist in which items will be changed.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPPlaylist.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/playlistWillChangeItems:" title="playlistWillChangeItems:"></a>
+	<h3 class="subsubtitle method-title">playlistWillChangeItems:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Called before a change that isn&rsquo;t a simple add, remove or move operation to the items in the playlist.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>- (void)playlistWillChangeItems:(SPPlaylist *)<em>aPlaylist</em></code></div>
+	
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>aPlaylist</em></dt>
+			<dd><p>The playlist in which items will be changed.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPPlaylist.h</code><br />
+	</div>				
+	
+	
+</div>
+						
 					</div>
 					
 					
@@ -650,7 +770,7 @@
 				<div id="footer">
 					<hr />
 					<div class="footer-copyright">
-						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-05-23)</span><br />
+						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-08-22)</span><br />
 						
 						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.0.5 (build 789)</a>.</span></p>
 						

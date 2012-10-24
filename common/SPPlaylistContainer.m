@@ -585,6 +585,34 @@ static sp_playlistcontainer_callbacks playlistcontainer_callbacks = {
 	}
 }
 
+-(void)subscribeToPlaylist:(SPPlaylist *)playlist callback:(SPErrorableOperationCallback)block {
+
+	if (playlist == nil ||
+		playlist.owner == self.session.user ||
+		[self.flattenedPlaylists containsObject:playlist]) {
+
+		if (block) block([NSError spotifyErrorWithCode:SP_ERROR_INVALID_INDATA]);
+		return;
+	}
+
+	dispatch_async([SPSession libSpotifyQueue], ^{
+
+		sp_link *link = sp_link_create_from_playlist(playlist.playlist);
+		sp_playlist *subbedPlaylist = sp_playlistcontainer_add_playlist(self.container, link);
+		sp_link_release(link);
+		link = NULL;
+
+			if (block)
+				dispatch_async(dispatch_get_main_queue(), ^{
+					NSError *error = nil;
+					if (subbedPlaylist == NULL)
+						error = [NSError spotifyErrorWithCode:SP_ERROR_OTHER_PERMANENT];
+
+					block(error);
+				});
+	});
+}
+
 -(void)dealloc {
     
     self.session = nil;

@@ -127,8 +127,7 @@
 		[[passwordField stringValue] length] > 0) {
 		
 		[[SPSession sharedSession] attemptLoginWithUserName:[userNameField stringValue]
-												   password:[passwordField stringValue]
-										rememberCredentials:NO];
+												   password:[passwordField stringValue]];
 	} else {
 		NSBeep();
 	}

@@ -33,11 +33,7 @@
 #import "SPSessionTests.h"
 #import "SPSession.h"
 #import "SPUser.h"
-
-static NSTimeInterval const kSessionLoadingTimeout = 15.0;
-static NSTimeInterval const kSessionBlobTimeout = 15.0;
-static NSString * const kTestUserNameUserDefaultsKey = @"TestUserName";
-static NSString * const kTestPasswordUserDefaultsKey = @"TestPassword";
+#import "TestConstants.h"
 
 @implementation SPSessionTests {
 	BOOL _didGetLoginBlob;
@@ -108,16 +104,15 @@ static NSString * const kTestPasswordUserDefaultsKey = @"TestPassword";
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(loginDidSucceed:)
 												 name:SPSessionLoginDidSucceedNotification
-											   object:nil];
-	
+                                             object:nil];
+
 	[[NSNotificationCenter defaultCenter] addObserver:self
-											 selector:@selector(loginDidFail:)
-												 name:SPSessionLoginDidFailNotification
-											   object:nil];
+                                           selector:@selector(loginDidFail:)
+                                               name:SPSessionLoginDidFailNotification
+                                             object:nil];
 	
 	[[SPSession sharedSession] attemptLoginWithUserName:userName
-											   password:password
-									rememberCredentials:NO];	
+                                             password:password];
 }
 
 -(void)loginDidSucceed:(NSNotification *)notification {
@@ -140,12 +135,12 @@ static NSString * const kTestPasswordUserDefaultsKey = @"TestPassword";
 	
 	SPTestAssert([SPSession sharedSession] != nil, @"Session should not be be nil.");
 	
-	[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession] timeout:kSessionLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+	[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession] timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 		
 		SPTestAssert(dispatch_get_current_queue() == dispatch_get_main_queue(), @"SPAsyncLoading callback on wrong queue.");
 		SPTestAssert(notLoadedItems.count == 0, @"Session loading timed out for %@", [SPSession sharedSession]);
 		
-		[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession].user timeout:kSessionLoadingTimeout then:^(NSArray *loadedUsers, NSArray *notLoadedUsers) {
+		[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession].user timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedUsers, NSArray *notLoadedUsers) {
 			
 			SPTestAssert(notLoadedUsers.count == 0, @"User loading timed out for %@", [SPSession sharedSession].user);
 			
@@ -162,7 +157,7 @@ static NSString * const kTestPasswordUserDefaultsKey = @"TestPassword";
 	
 	SPTestAssert([SPSession sharedSession] != nil, @"Session should not be be nil.");
 	
-	[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession] timeout:kSessionLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+	[SPAsyncLoading waitUntilLoaded:[SPSession sharedSession] timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 		
 		SPTestAssert(notLoadedItems.count == 0, @"Session loading timed out for %@", [SPSession sharedSession]);
 		SPTestAssert([SPSession sharedSession].locale != nil, @"Session has no locale.");
@@ -177,7 +172,7 @@ static NSString * const kTestPasswordUserDefaultsKey = @"TestPassword";
 	if (_didGetLoginBlob)
 		[self validateReceivedBlobs];
 	else
-		[self performSelector:@selector(timeoutReceivingBlobs) withObject:nil afterDelay:kSessionBlobTimeout];
+		[self performSelector:@selector(timeoutReceivingBlobs) withObject:nil afterDelay:kSPAsyncLoadingDefaultTimeout];
 }
 
 -(void)validateReceivedBlobs {

@@ -37,11 +37,7 @@
 #import "SPPlaylistFolder.h"
 #import "SPAsyncLoading.h"
 #import "SPTrack.h"
-
-static NSTimeInterval const kPlaylistLoadingTimeout = 15.0;
-static NSString * const kTestPlaylistName = @"CocoaLibSpotify Test Playlist";
-static NSString * const kTrack1TestURI = @"spotify:track:5iIeIeH3LBSMK92cMIXrVD"; // Spotify Test Track
-static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"; // I Am, I Feel by Alisha's Attic
+#import "TestConstants.h"
 
 @interface SPPlaylistTests ()
 @property (nonatomic, readwrite, strong) SPPlaylist *playlist;
@@ -55,11 +51,11 @@ static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"
 	
 	SPSession *session = [SPSession sharedSession];
 	
-	[SPAsyncLoading waitUntilLoaded:session then:^(NSArray *loadedSession) {
+	[SPAsyncLoading waitUntilLoaded:session timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedSession, NSArray *notLoadedSession) {
 		
 		SPTestAssert(session.inboxPlaylist != nil, @"Inbox playlist is nil");
 		
-		[SPAsyncLoading waitUntilLoaded:session.inboxPlaylist timeout:kPlaylistLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+		[SPAsyncLoading waitUntilLoaded:session.inboxPlaylist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 			
 			SPTestAssert(notLoadedItems.count == 0, @"Playlist loading timed out for %@", session.inboxPlaylist);
 			SPTestAssert(session.inboxPlaylist.items != nil, @"Inbox playlist's tracks is nil");
@@ -72,11 +68,11 @@ static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"
 	
 	SPSession *session = [SPSession sharedSession];
 	
-	[SPAsyncLoading waitUntilLoaded:session then:^(NSArray *loadedSession) {
+	[SPAsyncLoading waitUntilLoaded:session timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedSession, NSArray *notLoadedSession) {
 		
 		SPTestAssert(session.starredPlaylist != nil, @"Starred playlist is nil");
 		
-		[SPAsyncLoading waitUntilLoaded:session.starredPlaylist timeout:kPlaylistLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+		[SPAsyncLoading waitUntilLoaded:session.starredPlaylist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 			
 			SPTestAssert(notLoadedItems.count == 0, @"Playlist loading timed out for %@", session.starredPlaylist);
 			SPTestAssert(session.starredPlaylist.items != nil, @"Starred playlist's tracks is nil");
@@ -89,16 +85,21 @@ static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"
 	
 	SPSession *session = [SPSession sharedSession];
 	
-	[SPAsyncLoading waitUntilLoaded:session then:^(NSArray *loadedSession) {
+	[SPAsyncLoading waitUntilLoaded:session timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedSession, NSArray *notLoadedSession) {
 		
 		SPPlaylistContainer *container = session.userPlaylists;
 		SPTestAssert(container != nil, @"User playlists is nil");
 		
-		[SPAsyncLoading waitUntilLoaded:container timeout:kPlaylistLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+		[SPAsyncLoading waitUntilLoaded:container timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 			
 			SPTestAssert(notLoadedItems.count == 0, @"Playlist container loading timed out for %@", container);
 			SPTestAssert(container.owner != nil, @"User playlists has nil owner");
 			SPTestAssert(container.playlists != nil, @"User playlists has nil playlist tree");
+			
+			// Test below assumes user has > 0 playlists
+			SPTestAssert(container.loaded == YES, @"userPlaylists not loaded");
+			SPTestAssert(container.flattenedPlaylists.count > 0, @"No playlists loaded");
+
 			SPPassTest();
 		}];
 	}];
@@ -108,12 +109,12 @@ static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"
 	
 	SPSession *session = [SPSession sharedSession];
 	
-	[SPAsyncLoading waitUntilLoaded:session then:^(NSArray *loadedSession) {
+	[SPAsyncLoading waitUntilLoaded:session timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedSession, NSArray *notLoadedSession) {
 		
 		SPPlaylistContainer *container = session.userPlaylists;
 		SPTestAssert(container != nil, @"User playlists is nil");
 		
-		[SPAsyncLoading waitUntilLoaded:container timeout:kPlaylistLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+		[SPAsyncLoading waitUntilLoaded:container timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 			
 			SPTestAssert(notLoadedItems.count == 0, @"Playlist container loading timed out for %@", container);
 			
@@ -123,7 +124,7 @@ static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"
 				
 				self.playlist = createdPlaylist;
 				
-				[SPAsyncLoading waitUntilLoaded:createdPlaylist timeout:kPlaylistLoadingTimeout then:^(NSArray *loadedPlaylist, NSArray *notLoadedPlaylist) {
+				[SPAsyncLoading waitUntilLoaded:createdPlaylist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedPlaylist, NSArray *notLoadedPlaylist) {
 					
 					SPTestAssert(notLoadedPlaylist.count == 0, @"Playlist loading timed out for %@", createdPlaylist);
 					SPTestAssert([container.flattenedPlaylists containsObject:createdPlaylist], @"Playlist container doesn't contain playlist %@", createdPlaylist);
@@ -137,19 +138,21 @@ static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"
 
 -(void)test5PlaylistTrackManagement {
 	
+	__block SPPlaylistTests *sself = self;
+	
 	SPTestAssert(self.playlist != nil, @"Test playlist is nil - cannot run test");
 	
-	[SPAsyncLoading waitUntilLoaded:self.playlist timeout:kPlaylistLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+	[SPAsyncLoading waitUntilLoaded:self.playlist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 		
 		SPTestAssert(notLoadedItems.count == 0, @"Playlist loading timed out for %@", self.playlist);
 		
-		[SPTrack trackForTrackURL:[NSURL URLWithString:kTrack1TestURI] inSession:[SPSession sharedSession] callback:^(SPTrack *track1) {
-			[SPTrack trackForTrackURL:[NSURL URLWithString:kTrack2TestURI] inSession:[SPSession sharedSession] callback:^(SPTrack *track2) {
+		[SPTrack trackForTrackURL:[NSURL URLWithString:kPlaylistTestTrack1TestURI] inSession:[SPSession sharedSession] callback:^(SPTrack *track1) {
+			[SPTrack trackForTrackURL:[NSURL URLWithString:kPlaylistTestTrack2TestURI] inSession:[SPSession sharedSession] callback:^(SPTrack *track2) {
 				
-				SPTestAssert(track1 != nil, @"SPTrack returned nil for %@", kTrack1TestURI);
-				SPTestAssert(track2 != nil, @"SPTrack returned nil for %@", kTrack2TestURI);
+				SPTestAssert(track1 != nil, @"SPTrack returned nil for %@", kPlaylistTestTrack1TestURI);
+				SPTestAssert(track2 != nil, @"SPTrack returned nil for %@", kPlaylistTestTrack2TestURI);
 				
-				[self.playlist addItems:[NSArray arrayWithObjects:track1, track2, nil] atIndex:0 callback:^(NSError *error) {
+				[sself.playlist addItems:[NSArray arrayWithObjects:track1, track2, nil] atIndex:0 callback:^(NSError *error) {
 					
 					SPTestAssert(error == nil, @"Got error when adding to playlist: %@", error);
 					SPTestAssert(dispatch_get_current_queue() == dispatch_get_main_queue(), @"addItems callback on wrong queue.");
@@ -160,7 +163,7 @@ static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"
 					SPTestAssert([originalPlaylistTracks objectAtIndex:0] == track1, @"Playlist track 0 should be %@, is actually %@", track1, [originalPlaylistTracks objectAtIndex:0]);
 					SPTestAssert([originalPlaylistTracks objectAtIndex:1] == track2, @"Playlist track 1 should be %@, is actually %@", track2, [originalPlaylistTracks objectAtIndex:1]);
 					
-					[self.playlist moveItemsAtIndexes:[NSIndexSet indexSetWithIndex:0] toIndex:2 callback:^(NSError *moveError) {
+					[sself.playlist moveItemsAtIndexes:[NSIndexSet indexSetWithIndex:0] toIndex:2 callback:^(NSError *moveError) {
 						SPTestAssert(moveError == nil, @"Move operation returned error: %@", moveError);
 						SPTestAssert(dispatch_get_current_queue() == dispatch_get_main_queue(), @"moveItemsAtIndexes callback on wrong queue.");
 						
@@ -169,7 +172,7 @@ static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"
 						SPTestAssert([movedPlaylistTracks objectAtIndex:0] == track2, @"Playlist track 0 should be %@ after move, is actually %@", track2, [movedPlaylistTracks objectAtIndex:0]);
 						SPTestAssert([movedPlaylistTracks objectAtIndex:1] == track1, @"Playlist track 1 should be %@ after move, is actually %@", track1, [movedPlaylistTracks objectAtIndex:1]);
 						
-						[self.playlist removeItemAtIndex:0 callback:^(NSError *deletionError) {
+						[sself.playlist removeItemAtIndex:0 callback:^(NSError *deletionError) {
 							
 							SPTestAssert(deletionError == nil, @"Removal operation returned error: %@", deletionError);
 							SPTestAssert(dispatch_get_current_queue() == dispatch_get_main_queue(), @"removeItemAtIndex		callback on wrong queue.");
@@ -193,12 +196,12 @@ static NSString * const kTrack2TestURI = @"spotify:track:2zpRYcfuvripcfzgWEj1c7"
 	// Removing playlist
 	SPSession *session = [SPSession sharedSession];
 	
-	[SPAsyncLoading waitUntilLoaded:session then:^(NSArray *loadedSession) {
+	[SPAsyncLoading waitUntilLoaded:session timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedSession, NSArray *notLoadedSession) {
 		
 		SPPlaylistContainer *container = session.userPlaylists;
 		SPTestAssert(container != nil, @"User playlists is nil");
 		
-		[SPAsyncLoading waitUntilLoaded:container timeout:kPlaylistLoadingTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
+		[SPAsyncLoading waitUntilLoaded:container timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
 			
 			SPTestAssert(notLoadedItems.count == 0, @"Playlist container loading timed out for %@", container);
 			

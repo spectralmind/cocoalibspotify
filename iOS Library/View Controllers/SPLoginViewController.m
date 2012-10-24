@@ -35,6 +35,7 @@
 #import "SPFacebookPermissionsViewController.h"
 #import "SPLicenseViewController.h"
 #import "SPLoginViewControllerInternal.h"
+#import "SPClientUpsellViewController.h"
 
 @interface SPLoginViewController ()
 
@@ -80,6 +81,7 @@ static NSMutableDictionary *loginControllerCache;
 		self.session = aSession;
 		self.navigationBar.barStyle = UIBarStyleBlack;
 		self.modalPresentationStyle = UIModalPresentationFormSheet;
+		self.dismissesAfterLogin = YES;
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self 
 												 selector:@selector(sessionDidLogin:)
@@ -105,6 +107,7 @@ static NSMutableDictionary *loginControllerCache;
 @synthesize session;
 @synthesize waitingForFacebookPermissions;
 @synthesize loginDelegate;
+@synthesize dismissesAfterLogin;
 
 
 -(void)setAllowsCancel:(BOOL)allowsCancel {
@@ -222,13 +225,21 @@ static NSMutableDictionary *loginControllerCache;
 
 -(void)viewWillDisappear:(BOOL)animated {
 	self.shown = NO;
+	SPLoginLogicViewController *root = [[self viewControllers] objectAtIndex:0];
+
+	[root viewWillDisappear:animated];
+	[super viewWillDisappear:animated];
 }
 
 -(void)viewDidDisappear:(BOOL)animated {
 	// Since we're a shared instance reset state
 	SPLoginLogicViewController *root = [[self viewControllers] objectAtIndex:0];
 	[root resetState];
+	[root viewDidDisappear:animated];
+
 	[self popToViewController:root animated:NO];
+
+	[super viewDidDisappear:animated];
 }
 
 -(void)showIfNeeded {
@@ -266,12 +277,36 @@ static NSMutableDictionary *loginControllerCache;
 @implementation SPLoginViewController (SPLoginViewControllerInternal)
 
 -(void)dismissLoginView:(BOOL)success {
+	
+	UIViewController *targetViewController = nil;
+	
 	if ([self respondsToSelector:@selector(presentingViewController)]) {
-		[self.presentingViewController dismissModalViewControllerAnimated:YES];
+		targetViewController = self.presentingViewController;
 	} else {
-		[self.parentViewController dismissModalViewControllerAnimated:YES];
+		targetViewController = self.parentViewController;
 	}
 	
+	if (success && ![SPSession spotifyClientInstalled] /*&& self.didReceiveSignupFlow*/) {
+		// Show client upsell.
+		
+		SPClientUpsellViewController *vc = [[SPClientUpsellViewController alloc] initWithSession:self.session];
+		UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
+		nav.navigationBar.barStyle = UIBarStyleBlack;
+		nav.modalPresentationStyle = UIModalPresentationFormSheet;
+		
+		vc.completionBlock = ^() {
+			if (self.dismissesAfterLogin) {
+				[targetViewController dismissModalViewControllerAnimated:YES];
+			}
+			[self.loginDelegate loginViewController:self didCompleteSuccessfully:success];
+		};
+		
+		[targetViewController dismissModalViewControllerAnimated:NO];
+		[targetViewController presentModalViewController:nav animated:NO];
+		return;
+	}
+	
+	[targetViewController dismissModalViewControllerAnimated:YES];
 	[self.loginDelegate loginViewController:self didCompleteSuccessfully:success];
 }
 
