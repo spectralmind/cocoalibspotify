@@ -10,6 +10,10 @@
 
 static NSString * const kTestUserNameUserDefaultsKey = @"TestUserName";
 static NSString * const kTestPasswordUserDefaultsKey = @"TestPassword";
+static NSString * const kLogForTeamCityUserDefaultsKey = @"LogForTeamCity";
+static NSString * const kAppKeyUserDefaultsKey = @"AppKey";
+
+static NSTimeInterval const kDefaultNonAsyncLoadingTestTimeout = 10.0;
 
 static NSString * const kArtistLoadingTestURI = @"spotify:artist:26dSoYclwsYLMAKD3tpOr4"; // Britney Spears
 static NSString * const kAlbumLoadingTestURI = @"spotify:album:50KUdiSuV2MmBmreFPl3PE"; // Barenaked Ladies Live

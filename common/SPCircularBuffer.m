@@ -60,16 +60,26 @@
 }
 
 -(NSUInteger)attemptAppendData:(const void *)data ofLength:(NSUInteger)dataLength {
-    
-    NSUInteger availableBufferSpace = self.maximumLength - self.length;
-    
+	return [self attemptAppendData:data ofLength:dataLength chunkSize:1];
+}
+
+-(NSUInteger)attemptAppendData:(const void *)data ofLength:(NSUInteger)dataLength chunkSize:(NSUInteger)chunkSize {
+
 	@synchronized(self) {
-        
-		if (availableBufferSpace == 0)
+
+		NSUInteger availableBufferSpace = self.maximumLength - self.length;
+		if (chunkSize == 0) chunkSize = 1;
+
+		// chunkSize is the minimum amount of data we can copy in
+		if (availableBufferSpace < chunkSize)
 			return 0;
-		
+
+		// First make sure we have a data length that fits into the buffer
 		NSUInteger writableByteCount = MIN(dataLength, availableBufferSpace);
-		NSUInteger directCopyByteCount = MIN(writableByteCount, self.maximumLength - (dataEndOffset + 1));
+		// ...that also fits into our chunkSize
+		writableByteCount -= (writableByteCount % chunkSize);
+
+		NSUInteger directCopyByteCount = MIN(writableByteCount, self.maximumLength - (empty ? 0 : dataEndOffset + 1));
 		NSUInteger wraparoundByteCount = writableByteCount - directCopyByteCount;
 		
 		if (directCopyByteCount > 0) {
@@ -132,9 +142,9 @@
 			// Empty!
 			return 0;
 		} else if (dataEndOffset > dataStartOffset) {
-			return dataEndOffset - dataStartOffset;
+			return (dataEndOffset - dataStartOffset) + 1;
 		} else {
-			return (maximumLength - dataStartOffset) + dataEndOffset;
+			return (maximumLength - dataStartOffset) + dataEndOffset + 1;
 		}
 	}
 }

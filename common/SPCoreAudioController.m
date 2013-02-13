@@ -143,17 +143,14 @@ static NSTimeInterval const kTargetBufferLength = 0.5;
 		[self clearAudioBuffers];
 		[self applyAudioStreamDescriptionToInputUnit:audioDescription];
 	}
-	
-	NSUInteger dataLength = frameCount * audioDescription.mBytesPerPacket;
-	
-	if ((self.audioBuffer.maximumLength - self.audioBuffer.length) < dataLength) {
-		// Only allow whole deliveries in, since libSpotify wants us to consume whole frames, whereas
-		// the buffer works in bytes, meaning we could consume a fraction of a frame.
-		return 0;
-	}
-	
-	[self.audioBuffer attemptAppendData:audioFrames ofLength:dataLength];
-	return frameCount;	
+
+	NSUInteger bytesToAdd = frameCount * audioDescription.mBytesPerPacket;
+	NSUInteger bytesAdded = [self.audioBuffer attemptAppendData:audioFrames
+													   ofLength:bytesToAdd
+													  chunkSize:audioDescription.mBytesPerPacket];
+
+	NSUInteger framesAdded = bytesAdded / audioDescription.mBytesPerPacket;
+	return framesAdded;
 }
 
 

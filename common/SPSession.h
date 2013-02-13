@@ -66,19 +66,48 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 @interface SPSession : NSObject <SPSessionPlaybackProvider, SPAsyncLoading>
 
-/** Returns the dispatch queue that methods interacting with the libSpotify C API must be called on.
+/** Executes the given block on the libspotify thread.
  
  Any methods in CocoaLibSpotify that publicly expose parts of the libSpotify C API *or* direct calls 
- to libSpotify's C functions must be called on the queue returned by this method. This queue is dedicated
- to libSpotify and is separate from the application's main queue (`dispatch_get_main_queue()`).
+ to libSpotify's C functions must be called on the libspotify thead by passing a block to this method.
+ This thread is dedicated to libSpotify and is separate from the application's main thread.
  
- Methods in CocoaLibSpotify that require this queue are documented as such, and will throw an
- assertion if called from any other queue. libSpotify C functions will not throw an assertion - instead
+ Methods in CocoaLibSpotify that require execution on this thread are documented as such, and will throw an
+ assertion if called from any other thread. libSpotify C functions will not throw an assertion - instead
  you're likely to trigger an apparently random crash in the future since the library is not thread-safe.
  
- Examples for using this queue properly can be found in the project's README file.
+ Examples for using this thread properly can be found in the project's README file.
+ 
+ @param block The block to execute.
  */
-+(dispatch_queue_t)libSpotifyQueue;
++(void)dispatchToLibSpotifyThread:(dispatch_block_t)block;
+
+/** Executes the given block on the libspotify thread.
+
+ Any methods in CocoaLibSpotify that publicly expose parts of the libSpotify C API *or* direct calls
+ to libSpotify's C functions must be called on the libspotify thead by passing a block to this method.
+ This thread is dedicated to libSpotify and is separate from the application's main thread.
+
+ Methods in CocoaLibSpotify that require execution on this thread are documented as such, and will throw an
+ assertion if called from any other thread. libSpotify C functions will not throw an assertion - instead
+ you're likely to trigger an apparently random crash in the future since the library is not thread-safe.
+
+ Examples for using this thread properly can be found in the project's README file.
+
+ @param block The block to execute.
+ @param wait If `YES`, this method will block until the block has completed executing. This is not recommended.
+ */
++(void)dispatchToLibSpotifyThread:(dispatch_block_t)block waitUntilDone:(BOOL)wait;
+
+/** Returns the runloop that is running libspotify.
+ 
+ Calls to the libspotify C API and certain CocoaLibSpotify methods must be made on this
+ runloop. See +[SPSession dispatchToLibSpotifyThread:] to a convenient way to do this.
+ 
+ @see +[SPSession dispatchToLibSpotifyThread:]
+ @return The runloop running libspotify.
+ */
++(CFRunLoopRef)libSpotifyRunloop;
 
 /** Returns `YES` if the Spotify client is installed on the current device/machine. */
 +(BOOL)spotifyClientInstalled;
@@ -94,25 +123,25 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  support using multiple sessions in the same process. While you can either create and 
  store your SPSession object using this convenience method or yourself using -[SPSession init],
  make sure you only have _one_ instance of SPSession active in your process at a time.
- 
+
  @warning This will return `nil` until +[SPSession initializeSharedSessionWithApplicationKey:userAgent:loadingPolicy:error:] is
  successfully called.
  */
 +(SPSession *)sharedSession;
 
 /** Initializes the shared SPSession object.
- 
+
  Your application key and user agent must be valid to create an SPSession object.
  
- @warning The C API that CocoaLibSpotify uses (LibSpotify) doesn't 
- support using multiple sessions in the same process. While you can either create and 
- store your SPSession object using this convenience method or yourself using -[SPSession initWithApplicationKey:userAgent:loadingPolicy:error:],
+ @warning The C API that CocoaLibSpotify uses (LibSpotify) doesn't
+ support using multiple sessions in the same process. While you can either create and
+ store your SPSession object using this convenience method or yourself using +[SPSession initWithApplicationKey:userAgent:loadingPolicy:error:],
  make sure you only have _one_ instance of SPSession active in your process at a time.
- 
+
  @param appKey Your application key as an NSData.
  @param userAgent Your application's user agent (for example, com.yourcompany.MyGreatApp).
  @param policy The loading policy to use.
- @param error An error pointer to be filled with an NSError should a login problem occur. 
+ @param error An error pointer to be filled with an NSError should a login problem occur.
  @return `YES` the the shared session was initialized correctly, otherwise `NO`.
  */
 +(BOOL)initializeSharedSessionWithApplicationKey:(NSData *)appKey
@@ -121,8 +150,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 										   error:(NSError **)error;
 
 /** The "debug" build ID of libspotify.
- 
- This could be useful to display somewhere deep down in the user interface in 
+
+ This could be useful to display somewhere deep down in the user interface in
  case you (or Spotify) would like to know the exact version running. 
  
  @return Returns an NSString representing the build ID of the currently running version of libspotify.
@@ -136,12 +165,12 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** Initialize a new SPSession object.
  
  Your application key and user agent must be valid to create an SPSession object. This is SPSession's designated initializer.
- 
-@param appKey Your application key as an NSData.
-@param userAgent Your application's user agent (for example, com.yourcompany.MyGreatApp).
-@param policy The loading policy to use.
-@param error An error pointer to be filled with an NSError should a login problem occur.
-@return Returns a newly initialised SPSession object.
+
+ @param appKey Your application key as an NSData.
+ @param userAgent Your application's user agent (for example, com.yourcompany.MyGreatApp).
+ @param policy The loading policy to use.
+ @param error An error pointer to be filled with an NSError should a login problem occur.
+ @return Returns a newly initialised SPSession object.
  */
 -(id)initWithApplicationKey:(NSData *)appKey
 				  userAgent:(NSString *)userAgent
@@ -245,7 +274,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @warning This should only be used if you plan to directly use the 
@@ -442,7 +471,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns an object representation of the given Spotify URL.
  
-@warning This method *must* be called on the libSpotify queue. See the
+@warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
 
  @param aSpotifyUrlOfSomeKind A Spotify URL (starting `spotify:`).
@@ -470,7 +499,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This method caches SPPlaylist objects using the same cache the +[SPPlaylist playlist...] 
  convenience methods use.
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @param playlist The sp_playlist struct.
@@ -482,7 +511,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
  This method caches SPPlaylistFolder objects by ID.
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @param playlistId The folder ID.
@@ -506,7 +535,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This method caches SPTrack objects using the same cache the +[SPTrack track...] 
  convenience methods use.
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @param track The sp_track struct.
@@ -519,7 +548,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This method caches SPUser objects using the same cache the +[SPUser user...] 
  convenience methods use.
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @param user The sp_user struct.

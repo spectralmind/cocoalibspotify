@@ -39,6 +39,9 @@
 @implementation SPPostTracksToInboxTests
 
 -(void)testPostTracksToInbox {
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout * 2);
+	// ^Posting to inbox can take a long time in some situations, but still work OK.
 	
 	[SPTrack trackForTrackURL:[NSURL URLWithString:kInboxTestTrackToSendURI] inSession:[SPSession sharedSession] callback:^(SPTrack *track) {
 		

@@ -1,3 +1,30 @@
+CocoaLibSpotify 2.4.2 for libspotify 12, released January 29th 2012
+===================================================================
+
+* Fixes build on Xcode 4.6.
+
+CocoaLibSpotify 2.4.1 for libspotify 12, released January 28th 2012
+===================================================================
+
+* Adds a build script that corrects a problem in libspotify 12 preventing submission of CocoaLibSpotify applications to the Mac App Store (GitHub issue #136).
+
+CocoaLibSpotify 2.4.0 for libspotify 12, released November 14th 2012
+====================================================================
+
+* Improvements to packaging of sample projects, including an updated `USER_HEADER_SEARCH_PATHS` setting that allows archiving of iOS projects.
+
+* Large rewrite of the library's internal threading. This shouldn't affect your project, but please test your application thoroughly before releasing with this version.
+
+* Add to and document threading helper macros.
+
+* Improve `SPCoreAudioController` and `SPCircularBuffer`, fixing a bug that could result in corrupted audio playback.
+
+* `-[SPSession -trackForTrackStruct:]` no longer crashes on a `NULL` struct.
+
+* Improved unit tests to never hang during run, and to accept an appkey at the command line.
+
+* Other minor improvements and fixes.
+
 CocoaLibSpotify 2.3.0 for libspotify 12, released October 11th 2012
 ===================================================================
 

@@ -30,9 +30,17 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
+#import "TestRunner.h"
 
 int main(int argc, char *argv[])
 {
-	return NSApplicationMain(argc, (const char **)argv);
+	TestRunner *runner = [[TestRunner alloc] init];
+	@autoreleasepool {
+		NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+		[runLoop addPort:[NSPort port] forMode:NSRunLoopCommonModes];
+		[runner runTests];
+		[runLoop run];
+ 	}
+	return 0;
 }

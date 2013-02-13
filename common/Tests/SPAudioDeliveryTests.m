@@ -35,13 +35,11 @@
 #import "SPTrack.h"
 #import "TestConstants.h"
 
-@implementation SPAudioDeliveryTests {
-	BOOL gotAudioDelivery;
-}
+@implementation SPAudioDeliveryTests
 
 -(void)testAudioDelivery {
-	
-	gotAudioDelivery = NO;
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout + kDefaultNonAsyncLoadingTestTimeout);
 	
 	[SPTrack trackForTrackURL:[NSURL URLWithString:kTrackLoadingTestURI]
 					inSession:[SPSession sharedSession]
@@ -55,41 +53,26 @@
 							 SPSession *session = [SPSession sharedSession];
 							 session.audioDeliveryDelegate = self;
 							 session.playbackDelegate = self;
-							 
+
 							 [session playTrack:track callback:^(NSError *error) {
 								 SPTestAssert(error == nil, @"Track playback encountered error: %@", error);
-								 [self performSelector:@selector(timeOutAudioDeliveryTest) withObject:nil afterDelay:kSPAsyncLoadingDefaultTimeout];
 							 }];
 						 }];
 					 }];
-}
-
--(void)timeOutAudioDeliveryTest {
-	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(timeOutAudioDeliveryTest) object:nil];
-	if (!gotAudioDelivery)
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self failTest:@selector(testAudioDelivery) format:@"Timeout waiting for audio delivery."];
-		});
 }
 
 -(void)sessionDidLosePlayToken:(id <SPSessionPlaybackProvider>)aSession {}
 -(void)sessionDidEndPlayback:(id <SPSessionPlaybackProvider>)aSession {}
 
 -(void)session:(id <SPSessionPlaybackProvider>)aSession didEncounterStreamingError:(NSError *)error {
-	
-	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(timeOutAudioDeliveryTest) object:nil];
-	if (!gotAudioDelivery)
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[self failTest:@selector(testAudioDelivery) format:@"Streaming error waiting for audio delivery: %@", error];
-		});
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[self failTest:@selector(testAudioDelivery) format:@"Streaming error waiting for audio delivery: %@", error];
+	});
 }
 
 -(NSInteger)session:(id <SPSessionPlaybackProvider>)aSession shouldDeliverAudioFrames:(const void *)audioFrames ofCount:(NSInteger)frameCount streamDescription:(AudioStreamBasicDescription)audioDescription {
 	
 	if (frameCount == 0) return 0;
-	
-	gotAudioDelivery = YES;
-	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(timeOutAudioDeliveryTest) object:nil];
 	
 	aSession.playing = NO;
 	[aSession unloadPlayback];

@@ -48,7 +48,8 @@
 @synthesize playlist;
 
 -(void)test1InboxPlaylist {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout * 2);
 	SPSession *session = [SPSession sharedSession];
 	
 	[SPAsyncLoading waitUntilLoaded:session timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedSession, NSArray *notLoadedSession) {
@@ -65,7 +66,8 @@
 }
 
 -(void)test2StarredPlaylist {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout * 2);
 	SPSession *session = [SPSession sharedSession];
 	
 	[SPAsyncLoading waitUntilLoaded:session timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedSession, NSArray *notLoadedSession) {
@@ -82,7 +84,8 @@
 }
 
 -(void)test3PlaylistContainer {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout * 2);
 	SPSession *session = [SPSession sharedSession];
 	
 	[SPAsyncLoading waitUntilLoaded:session timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedSession, NSArray *notLoadedSession) {
@@ -106,7 +109,8 @@
 }
 
 -(void)test4PlaylistCreation {
-	
+
+	SPAssertTestCompletesInTimeInterval(kDefaultNonAsyncLoadingTestTimeout + (kSPAsyncLoadingDefaultTimeout * 3));
 	SPSession *session = [SPSession sharedSession];
 	
 	[SPAsyncLoading waitUntilLoaded:session timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedSession, NSArray *notLoadedSession) {
@@ -139,7 +143,8 @@
 -(void)test5PlaylistTrackManagement {
 	
 	__block SPPlaylistTests *sself = self;
-	
+
+	SPAssertTestCompletesInTimeInterval((kDefaultNonAsyncLoadingTestTimeout * 2) + kSPAsyncLoadingDefaultTimeout);
 	SPTestAssert(self.playlist != nil, @"Test playlist is nil - cannot run test");
 	
 	[SPAsyncLoading waitUntilLoaded:self.playlist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
@@ -190,7 +195,8 @@
 }
 
 -(void)test6PlaylistDeletion {
-	
+
+	SPAssertTestCompletesInTimeInterval(kDefaultNonAsyncLoadingTestTimeout + (kSPAsyncLoadingDefaultTimeout * 2));
 	SPTestAssert(self.playlist != nil, @"Test playlist is nil - cannot remove");
 	
 	// Removing playlist

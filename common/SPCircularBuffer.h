@@ -74,6 +74,23 @@
  */
 -(NSUInteger)attemptAppendData:(const void *)data ofLength:(NSUInteger)dataLength;
 
+/** Attempt to copy new data into the buffer.
+
+ Data is copied using the following heuristic:
+
+ - If dataLength <= (maximumLength - length), copy all data.
+ - Otherwise, copy (maximumLength - length) bytes.
+ - Number of bytes copied will be rounded to the largest number less than dataLength that can be
+   integrally be divided by chunkSize.
+
+ @param data A buffer containing the data to be copied in.
+ @param dataLength The length of the data, in bytes.
+ @param chunkSize Ensures the number of bytes copies in is a multiple of this number.
+ @return Returns the amount of data copied into the buffer, in bytes. If this number is
+ smaller than dataLength, only this number of bytes was copied in from the start of the given buffer.
+ */
+-(NSUInteger)attemptAppendData:(const void *)data ofLength:(NSUInteger)dataLength chunkSize:(NSUInteger)chunkSize;
+
 /** Read data out of the buffer into a pre-allocated buffer.
  
  @param desiredLength The desired number of bytes to copy out.
@@ -86,6 +103,6 @@
 @property (readonly) NSUInteger length;
 
 /** Returns the maximum amount of data that the buffer can hold, in bytes. */
-@property (readonly) NSUInteger maximumLength;
+@property (readonly, nonatomic) NSUInteger maximumLength;
 
 @end

@@ -50,7 +50,7 @@ static NSUInteger const SPImageIdLength = 20;
  This convenience method creates an SPImage object if one doesn't exist, or 
  returns a cached SPImage if one already exists for the given ID.
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @param imageId The image ID to create an SPImage for.
@@ -72,7 +72,7 @@ static NSUInteger const SPImageIdLength = 20;
 
 /** Initializes a new SPImage from the given struct and ID. 
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @warning For better performance and built-in caching, it is recommended
@@ -112,7 +112,7 @@ static NSUInteger const SPImageIdLength = 20;
 
 /** Returns the opaque structure used by the C LibSpotify API, or NULL if the image has yet to be loaded.
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @warning This should only be used if you plan to directly use the 

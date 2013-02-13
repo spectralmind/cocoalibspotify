@@ -53,7 +53,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  This convenience method creates an SPAlbum object if one doesn't exist, or 
  returns a cached SPAlbum if one already exists for the given struct.
  
-@warning This method *must* be called on the libSpotify queue. See the
+@warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @param anAlbum The sp_album struct to create an SPAlbum for.
@@ -78,7 +78,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Initializes a new SPAlbum from the given opaque sp_album struct. 
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @warning For better performance and built-in caching, it is recommended
@@ -97,7 +97,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @warning This should only be used if you plan to directly use the 

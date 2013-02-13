@@ -45,7 +45,8 @@
 @implementation SPMetadataTests
 
 -(void)testArtistMetadataLoading {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout + kDefaultNonAsyncLoadingTestTimeout);
 	[SPArtist artistWithArtistURL:[NSURL URLWithString:kArtistLoadingTestURI]
 						inSession:[SPSession sharedSession]
 						 callback:^(SPArtist *artist) {
@@ -61,7 +62,8 @@
 }
 
 -(void)testAlbumMetadataLoading {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout + kDefaultNonAsyncLoadingTestTimeout);
 	[SPAlbum albumWithAlbumURL:[NSURL URLWithString:kAlbumLoadingTestURI]
 					 inSession:[SPSession sharedSession]
 					  callback:^(SPAlbum *album) {
@@ -78,7 +80,8 @@
 }
 
 -(void)testArtistBrowseMetadataLoading {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout + kDefaultNonAsyncLoadingTestTimeout);
 	[SPArtistBrowse browseArtistAtURL:[NSURL URLWithString:kArtistBrowseLoadingTestURI]
 							inSession:[SPSession sharedSession]
 								 type:SP_ARTISTBROWSE_NO_TRACKS
@@ -97,7 +100,8 @@
 }
 
 -(void)testAlbumBrowseMetadataLoading {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout + kDefaultNonAsyncLoadingTestTimeout);
 	[SPAlbumBrowse browseAlbumAtURL:[NSURL URLWithString:kAlbumBrowseLoadingTestURI]
 						  inSession:[SPSession sharedSession]
 						   callback:^(SPAlbumBrowse *albumBrowse) {
@@ -115,7 +119,8 @@
 }
 
 -(void)testTrackMetadataLoading {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout + kDefaultNonAsyncLoadingTestTimeout);
 	[SPTrack trackForTrackURL:[NSURL URLWithString:kTrackLoadingTestURI]
 					inSession:[SPSession sharedSession]
 					 callback:^(SPTrack *track) {
@@ -131,7 +136,8 @@
 }
 
 -(void)testImageLoading {
-	
+
+	SPAssertTestCompletesInTimeInterval((kSPAsyncLoadingDefaultTimeout * 2) + kDefaultNonAsyncLoadingTestTimeout);
 	[SPAlbum albumWithAlbumURL:[NSURL URLWithString:kAlbumLoadingTestURI]
 					 inSession:[SPSession sharedSession]
 					  callback:^(SPAlbum *album) {
@@ -151,7 +157,8 @@
 }
 
 -(void)testUserTopListLoading {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout + kDefaultNonAsyncLoadingTestTimeout);
 	SPToplist *userToplist = [SPToplist toplistForCurrentUserInSession:[SPSession sharedSession]];
 	
 	[SPAsyncLoading waitUntilLoaded:userToplist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
@@ -164,7 +171,8 @@
 }
 
 -(void)testLocaleToplistLoading {
-	
+
+	SPAssertTestCompletesInTimeInterval(kSPAsyncLoadingDefaultTimeout);
 	SPToplist *localeToplist = [SPToplist toplistForLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"SE"] inSession:[SPSession sharedSession]];
 	
 	[SPAsyncLoading waitUntilLoaded:localeToplist timeout:kSPAsyncLoadingDefaultTimeout then:^(NSArray *loadedItems, NSArray *notLoadedItems) {
@@ -176,7 +184,5 @@
 		SPPassTest();
 	}];
 }
-
-
 
 @end

@@ -52,7 +52,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @property (nonatomic, readwrite, strong) SPPlatformNativeImage *image;
 @property (nonatomic, readwrite) sp_image *spImage;
 @property (nonatomic, readwrite, getter=isLoaded) BOOL loaded;
-@property (nonatomic, readwrite) __unsafe_unretained SPSession *session;
+@property (nonatomic, readwrite, assign) __unsafe_unretained SPSession *session;
 @property (nonatomic, readwrite, copy) NSURL *spotifyURL;
 @property (nonatomic, readwrite, strong) SPImageCallbackProxy *callbackProxy;
 
@@ -90,7 +90,7 @@ static NSMutableDictionary *imageCache;
 
 +(SPImage *)imageWithImageId:(const byte *)imageId inSession:(SPSession *)aSession {
 
-	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+	SPAssertOnLibSpotifyThread();
 	
     if (imageCache == nil) {
         imageCache = [[NSMutableDictionary alloc] init];
@@ -120,7 +120,7 @@ static NSMutableDictionary *imageCache;
 		return;
 	}
 	
-	dispatch_async([SPSession libSpotifyQueue], ^{
+	SPDispatchAsync(^{
 		
 		SPImage *spImage = nil;
 		sp_link *link = [imageURL createSpotifyLink];
@@ -142,7 +142,7 @@ static NSMutableDictionary *imageCache;
 
 -(id)initWithImageStruct:(sp_image *)anImage imageId:(const byte *)anId inSession:aSession {
 	
-	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+	SPAssertOnLibSpotifyThread();
 	
     if ((self = [super init])) {
 		
@@ -183,7 +183,7 @@ static NSMutableDictionary *imageCache;
 
 -(sp_image *)spImage {
 #if DEBUG
-	NSAssert(dispatch_get_current_queue() == [SPSession libSpotifyQueue], @"Not on correct queue!");
+	SPAssertOnLibSpotifyThread();
 #endif 
 	return _spImage;
 }
@@ -214,7 +214,7 @@ static NSMutableDictionary *imageCache;
 	if (hasStartedLoading) return;
 	hasStartedLoading = YES;
 	
-	dispatch_async([SPSession libSpotifyQueue], ^{
+	SPDispatchAsync(^{
 		
 		if (self.spImage != NULL)
 			return;
@@ -261,7 +261,7 @@ static NSMutableDictionary *imageCache;
 	self.callbackProxy.image = nil;
 	self.callbackProxy = nil;
     
-    dispatch_async([SPSession libSpotifyQueue], ^() {
+    SPDispatchAsync(^() {
 		if (outgoing_image) sp_image_remove_load_callback(outgoing_image, &image_loaded, (__bridge void *)outgoingProxy);
 		if (outgoing_image) sp_image_release(outgoing_image);
 	});
@@ -269,7 +269,7 @@ static NSMutableDictionary *imageCache;
 
 -(void)cacheSpotifyURL {
 	
-	dispatch_async([SPSession libSpotifyQueue], ^{
+	SPDispatchAsync(^{
 
 		if (self.spotifyURL != NULL)
 			return;

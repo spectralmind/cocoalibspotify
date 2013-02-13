@@ -7,7 +7,7 @@
 		<meta name="viewport" content="width=550" />
 		<link rel="stylesheet" type="text/css" href="../css/styles.css" media="all" />
 		<link rel="stylesheet" type="text/css" media="print" href="../css/stylesPrint.css" />
-		<meta name="generator" content="appledoc 2.0.5 (build 789)" />
+		<meta name="generator" content="appledoc 2.1 (build 840)" />
 	</head>
 	<body>
 		<header id="top_header">
@@ -53,6 +53,8 @@
 	
 	<option value="//api/name/attemptAppendData:ofLength:">&nbsp;&nbsp;&nbsp;&nbsp;- attemptAppendData:ofLength:</option>
 	
+	<option value="//api/name/attemptAppendData:ofLength:chunkSize:">&nbsp;&nbsp;&nbsp;&nbsp;- attemptAppendData:ofLength:chunkSize:</option>
+	
 	<option value="//api/name/clear">&nbsp;&nbsp;&nbsp;&nbsp;- clear</option>
 	
 	<option value="//api/name/initWithMaximumLength:">&nbsp;&nbsp;&nbsp;&nbsp;- initWithMaximumLength:</option>
@@ -96,6 +98,8 @@
 <li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#instance_methods">Instance Methods</a></span><ul>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/attemptAppendData:ofLength:">attemptAppendData:ofLength:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/attemptAppendData:ofLength:chunkSize:">attemptAppendData:ofLength:chunkSize:</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/clear">clear</a></span></li>
 	
@@ -183,6 +187,13 @@ used with (Cocoa)LibSpotify, this isn&rsquo;t a problem as we can ask the librar
 	
 </li><li>
 	<span class="tooltip">
+		<code><a href="#//api/name/attemptAppendData:ofLength:chunkSize:">&ndash;&nbsp;attemptAppendData:ofLength:chunkSize:</a></code>
+		<span class="tooltip"><p>Attempt to copy new data into the buffer.</p></span>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
 		<code><a href="#//api/name/readDataOfLength:intoAllocatedBuffer:">&ndash;&nbsp;readDataOfLength:intoAllocatedBuffer:</a></code>
 		<span class="tooltip"><p>Read data out of the buffer into a pre-allocated buffer.</p></span>
 	</span>
@@ -260,7 +271,7 @@ used with (Cocoa)LibSpotify, this isn&rsquo;t a problem as we can ask the librar
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>@property (readonly) NSUInteger maximumLength</code></div>
+	<div class="method-subsection method-declaration"><code>@property (readonly, nonatomic) NSUInteger maximumLength</code></div>
 	
 	
 	
@@ -341,6 +352,79 @@ smaller than dataLength, only this number of bytes was copied in from the start 
 <ul>
 <li>If dataLength &lt;= (<a href="#//api/name/maximumLength">maximumLength</a> &ndash; <a href="#//api/name/length">length</a>), copy all data.</li>
 <li>Otherwise, copy (<a href="#//api/name/maximumLength">maximumLength</a> &ndash; <a href="#//api/name/length">length</a>) bytes.</li>
+</ul>
+
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPCircularBuffer.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/attemptAppendData:ofLength:chunkSize:" title="attemptAppendData:ofLength:chunkSize:"></a>
+	<h3 class="subsubtitle method-title">attemptAppendData:ofLength:chunkSize:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Attempt to copy new data into the buffer.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>- (NSUInteger)attemptAppendData:(const void *)<em>data</em> ofLength:(NSUInteger)<em>dataLength</em> chunkSize:(NSUInteger)<em>chunkSize</em></code></div>
+	
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>data</em></dt>
+			<dd><p>A buffer containing the data to be copied in.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>dataLength</em></dt>
+			<dd><p>The <a href="#//api/name/length">length</a> of the data, in bytes.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>chunkSize</em></dt>
+			<dd><p>Ensures the number of bytes copies in is a multiple of this number.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	<div class="method-subsection return">
+		<h4 class="method-subtitle parameter-title">Return Value</h4>
+		<p>Returns the amount of data copied into the buffer, in bytes. If this number is
+smaller than dataLength, only this number of bytes was copied in from the start of the given buffer.</p>
+	</div>
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<p>Data is copied using the following heuristic:</p>
+
+<ul>
+<li>If dataLength &lt;= (<a href="#//api/name/maximumLength">maximumLength</a> &ndash; <a href="#//api/name/length">length</a>), copy all data.</li>
+<li>Otherwise, copy (<a href="#//api/name/maximumLength">maximumLength</a> &ndash; <a href="#//api/name/length">length</a>) bytes.</li>
+<li>Number of bytes copied will be rounded to the largest number less than dataLength that can be
+ integrally be divided by chunkSize.</li>
 </ul>
 
 	</div>
@@ -514,9 +598,9 @@ smaller than dataLength, only this number of bytes was copied in from the start 
 				<div id="footer">
 					<hr />
 					<div class="footer-copyright">
-						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-05-23)</span><br />
+						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-11-14)</span><br />
 						
-						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.0.5 (build 789)</a>.</span></p>
+						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.1 (build 840)</a>.</span></p>
 						
 					</div>
 				</div>

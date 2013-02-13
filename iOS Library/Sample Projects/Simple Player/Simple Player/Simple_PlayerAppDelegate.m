@@ -51,21 +51,25 @@
 {
 	// Override point for customization after application launch.
 	[self.window makeKeyAndVisible];
-	
-	[SPSession initializeSharedSessionWithApplicationKey:[NSData dataWithBytes:&g_appkey length:g_appkey_size] 
+
+	NSError *error = nil;
+	[SPSession initializeSharedSessionWithApplicationKey:[NSData dataWithBytes:&g_appkey length:g_appkey_size]
 											   userAgent:@"com.spotify.SimplePlayer-iOS"
 										   loadingPolicy:SPAsyncLoadingManual
-												   error:nil];
+												   error:&error];
+	if (error != nil) {
+		NSLog(@"CocoaLibSpotify init failed: %@", error);
+		abort();
+	}
 
 	self.playbackManager = [[SPPlaybackManager alloc] initWithPlaybackSession:[SPSession sharedSession]];
+	[[SPSession sharedSession] setDelegate:self];
 
 	[self addObserver:self forKeyPath:@"currentTrack.name" options:0 context:nil];
 	[self addObserver:self forKeyPath:@"currentTrack.artists" options:0 context:nil];
 	[self addObserver:self forKeyPath:@"currentTrack.duration" options:0 context:nil];
 	[self addObserver:self forKeyPath:@"currentTrack.album.cover.image" options:0 context:nil];
 	[self addObserver:self forKeyPath:@"playbackManager.trackPosition" options:0 context:nil];
-	
-	[[SPSession sharedSession] setDelegate:self];
 	
 	[self performSelector:@selector(showLogin) withObject:nil afterDelay:0.0];
 	

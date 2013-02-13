@@ -79,12 +79,21 @@ static NSTimeInterval const kGameCountdownThreshold = 30.0;
 @synthesize roundTimer;
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-	
+
+	NSError *error = nil;
 	[SPSession initializeSharedSessionWithApplicationKey:[NSData dataWithBytes:&g_appkey length:g_appkey_size]
 											   userAgent:@"com.spotify.GuessTheIntro"
 										   loadingPolicy:SPAsyncLoadingImmediate
-												   error:nil];
-	 
+												   error:&error];
+	if (error != nil) {
+		NSLog(@"CocoaLibSpotify init failed: %@", error);
+		abort();
+	}
+
+	[[SPSession sharedSession] setDelegate:self];
+	self.playbackManager = [[SPPlaybackManager alloc] initWithPlaybackSession:[SPSession sharedSession]];
+	self.playbackManager.delegate = self;
+
 	[[NSUserDefaults standardUserDefaults] registerDefaults:[NSDictionary dictionaryWithObjectsAndKeys:
 															 [NSNumber numberWithBool:YES], @"CreatePlaylist",
 															 [NSNumber numberWithInteger:1], @"HighMultiplier",
@@ -96,12 +105,7 @@ static NSTimeInterval const kGameCountdownThreshold = 30.0;
 	// Insert code here to initialize your application
 	
 	srandom((unsigned int)time(NULL));
-	
-	[[SPSession sharedSession] setDelegate:self];
-	
-	self.playbackManager = [[SPPlaybackManager alloc] initWithPlaybackSession:[SPSession sharedSession]];
-	self.playbackManager.delegate = self;
-	
+
 	self.multiplier = 1;
 	
 	[self.loginView.layer setBackgroundColor:CGColorCreateGenericGray(0.93, 1.0)];

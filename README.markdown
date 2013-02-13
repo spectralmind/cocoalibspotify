@@ -12,9 +12,9 @@ You can find the latest release notes in the [CHANGELOG.markdown](https://github
 
 As of CocoaLibSpotify 2.0, the framework uses an internal threading model to run the libSpotify library on a background thread, allowing your application to remain responsive when libSpotify is experiencing heavy load.
 
-However, libSpotify is **not** thread-safe, and all methods in CocoaLibSpotify that provide access to libSpotify types are guarded to prevent access from the wrong thread. If you must access libSpotify types directly, first file an issue so we can make a thread-aware API in CocoaLibSpotify for your use case, then make sure you use libDispatch to call the relevant API on the correct queue, which `SPSession` provides an accessor for.
+However, libSpotify is **not** thread-safe, and all methods in CocoaLibSpotify that provide access to libSpotify types are guarded to prevent access from the wrong thread. If you must access libSpotify types directly, first file an issue so we can make a thread-aware API in CocoaLibSpotify for your use case, then make sure you call the relevant API on the correct thread, which `SPSession` provides various helper macros for.
 
-Bad: 
+Bad:
 
 ```
 sp_artist *artist = …; // An artist.
@@ -22,15 +22,23 @@ SPArtist *artistObj = [SPArtist artistWithArtistStruct:artist inSession:session]
 // ^ The above line will throw an assertion for being called on the wrong queue.
 ```
 
-Instead, you should create the object on the correct queue and safely pass it back to the target queue (the main queue if you're doing UI work) for further use:
+Instead, you should create the object on the correct thread and safely pass it back to the target queue (the main queue if you're doing UI work) for further use:
 
 ```
-dispatch_async([SPSession libSpotifyQueue], ^{
+SPDispatchAsync(^{
 	sp_artist *artist = …; // An artist.
 	SPArtist *artistObj = [SPArtist artistWithArtistStruct:artist inSession:session];
-	dispatch_async(dispatch_get_main_queue(), ^{ self.artist = artistObj; }); 
+	dispatch_async(dispatch_get_main_queue(), ^{ self.artist = artistObj; });
 });
 ```
+
+CocoaLibSpotify provides three macros to assist with threading:
+
+- `SPDispatchAsync()` takes a block and executes it asynchronously on the libSpotify thread. It works very much like libdispatch's `dispatch_async`.
+
+- `SPDispatchSyncIfNeeded()` takes a block and executes it synchronously on the libSpotify thread, blocking the current code path until completion. Since the libSpotify thread executes blocks on a first-come, first-served basis, internal work may delay execution for a significant amount of time, so using `SPDispatchAsync()` is always recommended.
+
+- `SPAssertOnLibSpotifyThread()` will throw an assertion when called from anything but the libSpotify thread. This can be useful for debugging code using the libSpotify thread.
 
 ## A Note On "Loading" ##
 
@@ -69,7 +77,7 @@ Key-Value Observing is a core technology in the Mac and iOS SDKs, and extensive 
 
 ## Building -  Mac OS X ##
 
-The Xcode project requires Xcode 4.3 and Mac OS X 10.7 to build since it uses ARC. However, the built binary can be deployed on 64-bit systems running Mac OS X 10.6 or higher.
+The Xcode project requires Xcode 4.5 and Mac OS X 10.7 to build since it uses ARC. However, the built binary can be deployed on 64-bit systems running Mac OS X 10.6 or higher.
 
 The built CocoaLibSpotify.framework contains libspotify.framework as a child framework. Sometimes, Xcode gives build errors complaining it can't find <libspotify/api.h>. If you get this, manually add the directory libspotify.framework is in to your project's "Framework Search Paths" build setting. For example, if you're building the CocoaLibSpotify project alongside your application as an embedded Xcode project then copying it into your bundle, you'd have this:
 
@@ -81,7 +89,7 @@ Otherwise, you'd point to the downloaded libspotify.framework manually, somethin
 
 ## Building - iOS ##
 
-The Xcode project requires Xcode 4.3 and iOS SDK version 5.0+ to build since it uses ARC. However, the built binary can be deployed on any iOS version from version 4.0.
+The Xcode project requires Xcode 4.5 and iOS SDK version 6.0+ to build since it uses ARC. However, the built binary can be deployed on any iOS version from version 4.0.
 
 The built libCocoaLibSpotify contains libspotify internally as a static library, as well as all of the required header files in a directory called "include".
 
@@ -105,7 +113,7 @@ If you're building the CocoaLibSpotify project alongside your application as an 
 
 `$CONFIGURATION_BUILD_DIR/include`
 
-Otherwise, you can simply add all of the header files to your project manually. 
+Otherwise, you can simply add all of the header files to your project manually.
 
 Once everything is set up, simply import the following header to get started with CocoaLibSpotify!
 
@@ -115,11 +123,11 @@ Once everything is set up, simply import the following header to get started wit
 
 The headers of CocoaLibSpotify are well documented, and we've provided an Xcode DocSet to provide documentation right in Xcode. With these and the sample projects, you should have everything you need to dive right in!
 
-Additionally, there's an FAQ [right here in the repo](https://github.com/spotify/cocoalibspotify/blob/master/FAQ.markdown) that covers common usage questions. 
+Additionally, there's an FAQ [right here in the repo](https://github.com/spotify/cocoalibspotify/blob/master/FAQ.markdown) that covers common usage questions.
 
 ## Branching ##
 
-All development work is done on the `dev` branch. When it's considered stable, it's merged to `master` with a new version tag. 
+All development work is done on the `dev` branch. When it's considered stable, it's merged to `master` with a new version tag.
 
 ## Unit Tests ##
 
@@ -127,12 +135,12 @@ CocoaLibSpotify now ships with a number of unit tests, which run inside a standa
 
 To run the tests, open the "CocoaLibSpotify Mac Framework" or "CocoaLibSpotify iOS Library" project as needed, then switch to the "CocoaLSTests" scheme in Xcode. Then:
 
-- Edit the scheme to pass the following arguments on launch: -TestUserName MyAwesomeUser -TestPassword MyAwesomePassword
-- Add your `appkey.c` file to the `common/Tests` folder in the repository. DO NOT commit your key!
+- Generate a Base64 representation of your appkey by downloading the binary version (not the C file) from `developer.spotify.com` and running the following command on it: `openssl base64 -in spotify_appkey.key | tr -d '\n'`.
+- Edit the scheme to pass the following arguments on launch: `-TestUserName <Your username> -TestPassword <Your password> -AppKey <Base64 appkey>`
 - Run the "CocoaLSTests" target.
 
 You'll find examples on how to make a good test in the tests themselves.
 
 ## Contact ##
 
-If you have any problems or find any bugs, see our GitHub page for known issues and discussion. For usage questions, please open a question on Stack Overflow with the `spotify` tag. Otherwise, we may be available in irc://irc.freenode.net/spotify. 
+If you have any problems or find any bugs, see our GitHub page for known issues and discussion. For usage questions, please open a question on Stack Overflow with the `spotify` tag. Otherwise, we may be available in irc://irc.freenode.net/spotify.

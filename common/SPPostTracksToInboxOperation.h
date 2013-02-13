@@ -92,7 +92,7 @@
 
 /** Returns the opaque structure used by the C LibSpotify API. 
  
- @warning This method *must* be called on the libSpotify queue. See the
+ @warning This method *must* be called on the libSpotify thread. See the
  "Threading" section of the library's readme for more information.
  
  @warning This should only be used if you plan to directly use the 

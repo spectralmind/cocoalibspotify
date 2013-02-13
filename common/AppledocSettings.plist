@@ -24,5 +24,7 @@
 	<false/>
 	<key>--verbose</key>
 	<integer>3</integer>
+	<key>--project-version</key>
+	<string>2.4.0</string>
 </dict>
 </plist>

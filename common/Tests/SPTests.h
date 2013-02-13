@@ -62,8 +62,11 @@ if (!(condition)) {	\
 return; \
 }
 
+#define SPAssertTestCompletesInTimeInterval(t) [self failTest:_cmd afterTimeout:t];
+
 -(void)passTest:(SEL)testSelector;
 -(void)failTest:(SEL)testSelector format:(NSString *)format, ...;
+-(void)failTest:(SEL)testSelector afterTimeout:(NSTimeInterval)timeout;
 
 -(void)runTests:(void (^)(NSUInteger passCount, NSUInteger failCount))block;
 

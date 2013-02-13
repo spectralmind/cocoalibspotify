@@ -30,7 +30,7 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "AppDelegate.h"
+#import "TestRunner.h"
 #import "SPSessionTests.h"
 #import "SPMetadataTests.h"
 #import "SPSearchTests.h"
@@ -39,10 +39,11 @@
 #import "SPSessionTeardownTests.h"
 #import "SPPlaylistTests.h"
 #import "SPConcurrencyTests.h"
+#import "TestConstants.h"
 
 static NSString * const kTestStatusServerUserDefaultsKey = @"StatusColorServer";
 
-@interface AppDelegate ()
+@interface TestRunner ()
 @property (nonatomic, strong) SPTests *sessionTests;
 @property (nonatomic, strong) SPTests *metadataTests;
 @property (nonatomic, strong) SPTests *searchTests;
@@ -53,9 +54,8 @@ static NSString * const kTestStatusServerUserDefaultsKey = @"StatusColorServer";
 @property (nonatomic, strong) SPTests *concurrencyTests;
 @end
 
-@implementation AppDelegate
+@implementation TestRunner
 
-@synthesize window = _window;
 @synthesize sessionTests;
 @synthesize metadataTests;
 @synthesize searchTests;
@@ -66,7 +66,10 @@ static NSString * const kTestStatusServerUserDefaultsKey = @"StatusColorServer";
 @synthesize concurrencyTests;
 
 -(void)completeTestsWithPassCount:(NSUInteger)passCount failCount:(NSUInteger)failCount {
-	printf("**** Completed %lu tests with %lu passes and %lu failures ****\n", passCount + failCount, passCount, failCount);
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:kLogForTeamCityUserDefaultsKey])
+		printf("##teamcity[testSuiteFinished name='CocoaLibSpotify']\n");
+	else
+		printf("**** Completed %lu tests with %lu passes and %lu failures ****\n", passCount + failCount, passCount, failCount);
 	[self pushColorToStatusServer:failCount > 0 ? [NSColor redColor] : [NSColor greenColor]];
 	exit(failCount > 0 ? EXIT_FAILURE : EXIT_SUCCESS);
 }
@@ -97,8 +100,7 @@ static NSString * const kTestStatusServerUserDefaultsKey = @"StatusColorServer";
 
 #pragma mark - Running Tests
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
-{
+-(void)runTests {
 	[self pushColorToStatusServer:[NSColor yellowColor]];
 	
 	// Make sure we have a clean cache before starting.
@@ -183,6 +185,9 @@ static NSString * const kTestStatusServerUserDefaultsKey = @"StatusColorServer";
 			runNextTest();
 		}];
 	};
+
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:kLogForTeamCityUserDefaultsKey])
+		printf("##teamcity[testSuiteStarted name='CocoaLibSpotify']\n");
 
 	runNextTest();
 }

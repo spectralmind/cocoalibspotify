@@ -7,7 +7,7 @@
 		<meta name="viewport" content="width=550" />
 		<link rel="stylesheet" type="text/css" href="../css/styles.css" media="all" />
 		<link rel="stylesheet" type="text/css" media="print" href="../css/stylesPrint.css" />
-		<meta name="generator" content="appledoc 2.0.5 (build 789)" />
+		<meta name="generator" content="appledoc 2.1 (build 840)" />
 	</head>
 	<body>
 		<header id="top_header">
@@ -87,13 +87,17 @@
 	
 	<option value="class_methods">Class Methods</option>
 	
+	<option value="//api/name/dispatchToLibSpotifyThread:">&nbsp;&nbsp;&nbsp;&nbsp;+ dispatchToLibSpotifyThread:</option>
+	
+	<option value="//api/name/dispatchToLibSpotifyThread:waitUntilDone:">&nbsp;&nbsp;&nbsp;&nbsp;+ dispatchToLibSpotifyThread:waitUntilDone:</option>
+	
 	<option value="//api/name/initializeSharedSessionWithApplicationKey:userAgent:loadingPolicy:error:">&nbsp;&nbsp;&nbsp;&nbsp;+ initializeSharedSessionWithApplicationKey:userAgent:loadingPolicy:error:</option>
 	
 	<option value="//api/name/launchSpotifyClientIfInstalled">&nbsp;&nbsp;&nbsp;&nbsp;+ launchSpotifyClientIfInstalled</option>
 	
 	<option value="//api/name/libSpotifyBuildId">&nbsp;&nbsp;&nbsp;&nbsp;+ libSpotifyBuildId</option>
 	
-	<option value="//api/name/libSpotifyQueue">&nbsp;&nbsp;&nbsp;&nbsp;+ libSpotifyQueue</option>
+	<option value="//api/name/libSpotifyRunloop">&nbsp;&nbsp;&nbsp;&nbsp;+ libSpotifyRunloop</option>
 	
 	<option value="//api/name/sharedSession">&nbsp;&nbsp;&nbsp;&nbsp;+ sharedSession</option>
 	
@@ -256,13 +260,17 @@
 
 <li role="treeitem" class="children"><span class="disclosure"></span><span class="sectionName"><a href="#class_methods">Class Methods</a></span><ul>
 	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/dispatchToLibSpotifyThread:">dispatchToLibSpotifyThread:</a></span></li>
+	
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/dispatchToLibSpotifyThread:waitUntilDone:">dispatchToLibSpotifyThread:waitUntilDone:</a></span></li>
+	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/initializeSharedSessionWithApplicationKey:userAgent:loadingPolicy:error:">initializeSharedSessionWithApplicationKey:userAgent:loadingPolicy:error:</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/launchSpotifyClientIfInstalled">launchSpotifyClientIfInstalled</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/libSpotifyBuildId">libSpotifyBuildId</a></span></li>
 	
-	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/libSpotifyQueue">libSpotifyQueue</a></span></li>
+	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/libSpotifyRunloop">libSpotifyRunloop</a></span></li>
 	
 	<li><span class="nodisclosure"></span><span class="sectionName"><a href="#//api/name/sharedSession">sharedSession</a></span></li>
 	
@@ -411,8 +419,22 @@ as you see fit. See the SimplePlayback sample project for an example of how to d
 						<ul class="task-list">
 							<li>
 	<span class="tooltip">
-		<code><a href="#//api/name/libSpotifyQueue">+&nbsp;libSpotifyQueue</a></code>
-		<span class="tooltip"><p>Returns the dispatch queue that methods interacting with the libSpotify C API must be called on.</p></span>
+		<code><a href="#//api/name/dispatchToLibSpotifyThread:">+&nbsp;dispatchToLibSpotifyThread:</a></code>
+		<span class="tooltip"><p>Executes the given block on the libspotify thread.</p></span>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/dispatchToLibSpotifyThread:waitUntilDone:">+&nbsp;dispatchToLibSpotifyThread:waitUntilDone:</a></code>
+		<span class="tooltip"><p>Executes the given block on the libspotify thread.</p></span>
+	</span>
+	
+	
+</li><li>
+	<span class="tooltip">
+		<code><a href="#//api/name/libSpotifyRunloop">+&nbsp;libSpotifyRunloop</a></code>
+		<span class="tooltip"><p>Returns the runloop that is running libspotify.</p></span>
 	</span>
 	
 	
@@ -805,7 +827,7 @@ social services is temporarily disabled.</p></span>
 </li><li>
 	<span class="tooltip">
 		<code><a href="#//api/name/unknownPlaylistForPlaylistStruct:">&ndash;&nbsp;unknownPlaylistForPlaylistStruct:</a></code>
-		<span class="tooltip"><p>Create and cache an <a href="../Classes/SPUnknownPlaylist.html">SPUnknownPlaylist</a> (subclass of <a href="../Classes/SPPlaylist.html">SPPlaylist</a>) for the given sp_playlist struct from the C LibSpotify API.</p></span>
+		<span class="tooltip"><p>Create and cache an SPUnknownPlaylist (subclass of <a href="../Classes/SPPlaylist.html">SPPlaylist</a>) for the given sp_playlist struct from the C LibSpotify API.</p></span>
 	</span>
 	
 	
@@ -912,7 +934,7 @@ sound level of each track the same), otherwise <code>NO</code>.</p></span>
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>@property (nonatomic, readwrite, assign) __unsafe_unretained id&lt;&gt; audioDeliveryDelegate</code></div>
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readwrite, assign) __unsafe_unretained id&lt;SPSessionAudioDeliveryDelegate&gt; audioDeliveryDelegate</code></div>
 	
 	
 	
@@ -1006,7 +1028,7 @@ The connection state is undefined.</p>
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>@property (nonatomic, readwrite, assign) __unsafe_unretained id&lt;&gt; delegate</code></div>
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readwrite, assign) __unsafe_unretained id&lt;SPSessionDelegate&gt; delegate</code></div>
 	
 	
 	
@@ -1358,7 +1380,7 @@ updated as new tracks are sent to the <a href="#//api/name/user">user</a>.</p>
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>@property (nonatomic, readwrite, assign) __unsafe_unretained id&lt;&gt; playbackDelegate</code></div>
+	<div class="method-subsection method-declaration"><code>@property (nonatomic, readwrite, assign) __unsafe_unretained id&lt;SPSessionPlaybackDelegate&gt; playbackDelegate</code></div>
 	
 	
 	
@@ -1483,7 +1505,7 @@ social services is temporarily disabled.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify thread. See the
 &ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div><div class="warning"><p><strong>Warning:</strong> This should only be used if you plan to directly use the
 C LibSpotify API. The behaviour of CocoaLibSpotify is undefined if you use the C
 API directly on items that have CocoaLibSpotify objects associated with them.</p></div>
@@ -1703,6 +1725,125 @@ sound level of each track the same), otherwise <code>NO</code>.</p>
 						<h2 class="subtitle subtitle-methods">Class Methods</h2>
 						
 						<div class="section-method">
+	<a name="//api/name/dispatchToLibSpotifyThread:" title="dispatchToLibSpotifyThread:"></a>
+	<h3 class="subsubtitle method-title">dispatchToLibSpotifyThread:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Executes the given block on the libspotify thread.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>+ (void)dispatchToLibSpotifyThread:(dispatch_block_t)<em>block</em></code></div>
+	
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>block</em></dt>
+			<dd><p>The block to execute.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<p>Any methods in CocoaLibSpotify that publicly expose parts of the libSpotify C API <em>or</em> direct calls
+to libSpotify&rsquo;s C functions must be called on the libspotify thead by passing a block to this method.
+This thread is dedicated to libSpotify and is separate from the application&rsquo;s main thread.</p>
+
+<p>Methods in CocoaLibSpotify that require execution on this thread are documented as such, and will throw an
+assertion if called from any other thread. libSpotify C functions will not throw an assertion &ndash; instead
+you&rsquo;re likely to trigger an apparently random crash in the future since the library is not thread-safe.</p>
+
+<p>Examples for using this thread properly can be found in the project&rsquo;s README file.</p>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPSession.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
+	<a name="//api/name/dispatchToLibSpotifyThread:waitUntilDone:" title="dispatchToLibSpotifyThread:waitUntilDone:"></a>
+	<h3 class="subsubtitle method-title">dispatchToLibSpotifyThread:waitUntilDone:</h3>
+	
+	
+	
+	<div class="method-subsection brief-description">
+		<p>Executes the given block on the libspotify thread.</p>
+	</div>		
+	
+	
+	<div class="method-subsection method-declaration"><code>+ (void)dispatchToLibSpotifyThread:(dispatch_block_t)<em>block</em> waitUntilDone:(BOOL)<em>wait</em></code></div>
+	
+	
+	<div class="method-subsection arguments-section parameters">
+		<h4 class="method-subtitle parameter-title">Parameters</h4>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>block</em></dt>
+			<dd><p>The block to execute.</p></dd>
+		</dl>
+		
+		<dl class="argument-def parameter-def">
+			<dt><em>wait</em></dt>
+			<dd><p>If <code>YES</code>, this method will block until the block has completed executing. This is not recommended.</p></dd>
+		</dl>
+		
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection discussion-section">
+		<h4 class="method-subtitle">Discussion</h4>
+		<p>Any methods in CocoaLibSpotify that publicly expose parts of the libSpotify C API <em>or</em> direct calls
+to libSpotify&rsquo;s C functions must be called on the libspotify thead by passing a block to this method.
+This thread is dedicated to libSpotify and is separate from the application&rsquo;s main thread.</p>
+
+<p>Methods in CocoaLibSpotify that require execution on this thread are documented as such, and will throw an
+assertion if called from any other thread. libSpotify C functions will not throw an assertion &ndash; instead
+you&rsquo;re likely to trigger an apparently random crash in the future since the library is not thread-safe.</p>
+
+<p>Examples for using this thread properly can be found in the project&rsquo;s README file.</p>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	<div class="method-subsection declared-in-section">
+		<h4 class="method-subtitle">Declared In</h4>
+		<code class="declared-in-ref">SPSession.h</code><br />
+	</div>				
+	
+	
+</div>
+						
+						<div class="section-method">
 	<a name="//api/name/initializeSharedSessionWithApplicationKey:userAgent:loadingPolicy:error:" title="initializeSharedSessionWithApplicationKey:userAgent:loadingPolicy:error:"></a>
 	<h3 class="subsubtitle method-title">initializeSharedSessionWithApplicationKey:userAgent:loadingPolicy:error:</h3>
 	
@@ -1854,20 +1995,25 @@ case you (or Spotify) would like to know the exact version running.</p>
 </div>
 						
 						<div class="section-method">
-	<a name="//api/name/libSpotifyQueue" title="libSpotifyQueue"></a>
-	<h3 class="subsubtitle method-title">libSpotifyQueue</h3>
+	<a name="//api/name/libSpotifyRunloop" title="libSpotifyRunloop"></a>
+	<h3 class="subsubtitle method-title">libSpotifyRunloop</h3>
 	
 	
 	
 	<div class="method-subsection brief-description">
-		<p>Returns the dispatch queue that methods interacting with the libSpotify C API must be called on.</p>
+		<p>Returns the runloop that is running libspotify.</p>
 	</div>		
 	
 	
-	<div class="method-subsection method-declaration"><code>+ (dispatch_queue_t)libSpotifyQueue</code></div>
+	<div class="method-subsection method-declaration"><code>+ (CFRunLoopRef)libSpotifyRunloop</code></div>
 	
 	
 	
+	
+	<div class="method-subsection return">
+		<h4 class="method-subtitle parameter-title">Return Value</h4>
+		<p>The runloop running libspotify.</p>
+	</div>
 	
 	
 	
@@ -1875,20 +2021,22 @@ case you (or Spotify) would like to know the exact version running.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<p>Any methods in CocoaLibSpotify that publicly expose parts of the libSpotify C API <em>or</em> direct calls
-to libSpotify&rsquo;s C functions must be called on the queue returned by this method. This queue is dedicated
-to libSpotify and is separate from the application&rsquo;s main queue (<code>dispatch_get_main_queue()</code>).</p>
-
-<p>Methods in CocoaLibSpotify that require this queue are documented as such, and will throw an
-assertion if called from any other queue. libSpotify C functions will not throw an assertion &ndash; instead
-you&rsquo;re likely to trigger an apparently random crash in the future since the library is not thread-safe.</p>
-
-<p>Examples for using this queue properly can be found in the project&rsquo;s README file.</p>
+		<p>Calls to the libspotify C API and certain CocoaLibSpotify methods must be made on this
+runloop. See <a href="#//api/name/dispatchToLibSpotifyThread:">[SPSession dispatchToLibSpotifyThread:]</a> to a convenient way to do this.</p>
 	</div>
 	
 	
 	
 	
+	
+	<div class="method-subsection see-also-section">
+		<h4 class="method-subtitle">See Also</h4>
+		<ul>
+			
+			<li><code><p><a href="#//api/name/dispatchToLibSpotifyThread:">[SPSession dispatchToLibSpotifyThread:]</a></p></code></li>
+			
+		</ul>
+	</div>
 	
 	
 	
@@ -2701,7 +2849,7 @@ what the given URL represents and returns that for you.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+		<div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify thread. See the
 &ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div>
 	</div>
 	
@@ -2810,7 +2958,7 @@ what the given URL represents and returns that for you.</p>
 	
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
-		<p>This method caches <a href="../Classes/SPPlaylistFolder.html">SPPlaylistFolder</a> objects by ID.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+		<p>This method caches <a href="../Classes/SPPlaylistFolder.html">SPPlaylistFolder</a> objects by ID.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify thread. See the
 &ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div>
 	</div>
 	
@@ -2866,7 +3014,7 @@ what the given URL represents and returns that for you.</p>
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This method caches SPPlaylist objects using the same cache the [SPPlaylist playlist&hellip;]
-convenience methods use.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+convenience methods use.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify thread. See the
 &ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div>
 	</div>
 	
@@ -3416,7 +3564,7 @@ are invalid, the <code>session:didEncounterScrobblingError:</code> method on you
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This method caches SPTrack objects using the same cache the [SPTrack track&hellip;]
-convenience methods use.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+convenience methods use.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify thread. See the
 &ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div>
 	</div>
 	
@@ -3490,7 +3638,7 @@ convenience methods use.</p><div class="warning"><p><strong>Warning:</strong> Th
 	
 	
 	<div class="method-subsection brief-description">
-		<p>Create and cache an <a href="../Classes/SPUnknownPlaylist.html">SPUnknownPlaylist</a> (subclass of <a href="../Classes/SPPlaylist.html">SPPlaylist</a>) for the given sp_playlist struct from the C LibSpotify API.</p>
+		<p>Create and cache an SPUnknownPlaylist (subclass of <a href="../Classes/SPPlaylist.html">SPPlaylist</a>) for the given sp_playlist struct from the C LibSpotify API.</p>
 	</div>		
 	
 	
@@ -3511,7 +3659,7 @@ convenience methods use.</p><div class="warning"><p><strong>Warning:</strong> Th
 	
 	<div class="method-subsection return">
 		<h4 class="method-subtitle parameter-title">Return Value</h4>
-		<p>Returns the created or cached <a href="../Classes/SPUnknownPlaylist.html">SPUnknownPlaylist</a> object.</p>
+		<p>Returns the created or cached SPUnknownPlaylist object.</p>
 	</div>
 	
 	
@@ -3665,7 +3813,7 @@ instance deallocation.</p>
 	<div class="method-subsection discussion-section">
 		<h4 class="method-subtitle">Discussion</h4>
 		<p>This method caches SPUser objects using the same cache the [SPUser user&hellip;]
-convenience methods use.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify queue. See the
+convenience methods use.</p><div class="warning"><p><strong>Warning:</strong> This method <em>must</em> be called on the libSpotify thread. See the
 &ldquo;Threading&rdquo; section of the library&rsquo;s readme for more information.</p></div>
 	</div>
 	
@@ -3696,9 +3844,9 @@ convenience methods use.</p><div class="warning"><p><strong>Warning:</strong> Th
 				<div id="footer">
 					<hr />
 					<div class="footer-copyright">
-						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-08-24)</span><br />
+						<p><span class="copyright">&copy; 2012 Spotify AB. All rights reserved. (Last updated: 2012-11-14)</span><br />
 						
-						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.0.5 (build 789)</a>.</span></p>
+						<span class="generator">Generated by <a href="http://appledoc.gentlebytes.com">appledoc 2.1 (build 840)</a>.</span></p>
 						
 					</div>
 				</div>

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3755E24A16440D400050348E /* NSData+Base64.m in Sources */ = {isa = PBXBuildFile; fileRef = 3755E24916440D400050348E /* NSData+Base64.m */; };
 		500EC8B51439D02A00E8A60C /* CocoaLibSpotify iOS Library-Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 500EC8B41439D02A00E8A60C /* CocoaLibSpotify iOS Library-Prefix.pch */; };
 		501E8ECC15384945001CEA82 /* SPAsyncLoading.h in Headers */ = {isa = PBXBuildFile; fileRef = 501E8ECA15384945001CEA82 /* SPAsyncLoading.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		501E8ECD15384945001CEA82 /* SPAsyncLoading.m in Sources */ = {isa = PBXBuildFile; fileRef = 501E8ECB15384945001CEA82 /* SPAsyncLoading.m */; };
@@ -133,6 +134,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3755E24816440D400050348E /* NSData+Base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+Base64.h"; sourceTree = "<group>"; };
+		3755E24916440D400050348E /* NSData+Base64.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+Base64.m"; sourceTree = "<group>"; };
 		500EC8B41439D02A00E8A60C /* CocoaLibSpotify iOS Library-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CocoaLibSpotify iOS Library-Prefix.pch"; sourceTree = "<group>"; };
 		501E8ECA15384945001CEA82 /* SPAsyncLoading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPAsyncLoading.h; path = ../common/SPAsyncLoading.h; sourceTree = "<group>"; };
 		501E8ECB15384945001CEA82 /* SPAsyncLoading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPAsyncLoading.m; path = ../common/SPAsyncLoading.m; sourceTree = "<group>"; };
@@ -457,6 +460,8 @@
 		50D4F54B156BCE4D00E237DD /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				3755E24816440D400050348E /* NSData+Base64.h */,
+				3755E24916440D400050348E /* NSData+Base64.m */,
 				50D4F55B156BCE4D00E237DD /* SPTests.h */,
 				50D4F55C156BCE4D00E237DD /* SPTests.m */,
 				50D4F54D156BCE4D00E237DD /* SPAudioDeliveryTests.h */,
@@ -719,6 +724,7 @@
 				50D4F580156BCED500E237DD /* SPPlaybackManager.m in Sources */,
 				50B9D4A7156CCE3800EE1665 /* SPConcurrencyTests.m in Sources */,
 				5082C6CB1577695400B74280 /* SPClientUpsellViewController.m in Sources */,
+				3755E24A16440D400050348E /* NSData+Base64.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

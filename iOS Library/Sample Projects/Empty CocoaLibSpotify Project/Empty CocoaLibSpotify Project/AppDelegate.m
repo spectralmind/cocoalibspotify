@@ -60,15 +60,14 @@
 
 	NSString *userAgent = [[[NSBundle mainBundle] infoDictionary] valueForKey:(__bridge NSString *)kCFBundleIdentifierKey];
 	NSData *appKey = [NSData dataWithBytes:&g_appkey length:g_appkey_size];
-	NSError *error = nil;
 
+	NSError *error = nil;
 	[SPSession initializeSharedSessionWithApplicationKey:appKey
 											   userAgent:userAgent
 										   loadingPolicy:SPAsyncLoadingManual
 												   error:&error];
-
 	if (error != nil) {
-		NSLog(@"[%@ %@]: FATAL: Failed to initialise SPSession with error: %@", NSStringFromClass([self class]), NSStringFromSelector(_cmd), error);
+		NSLog(@"CocoaLibSpotify init failed: %@", error);
 		abort();
 	}
 
@@ -78,7 +77,7 @@
 	controller.allowsCancel = NO;
 	// ^ To allow the user to cancel (i.e., your application doesn't require a logged-in Spotify user, set this to YES.
 	[self.viewController presentModalViewController:controller animated:NO];
-	
+
     return YES;
 }
 

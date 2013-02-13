@@ -44,6 +44,8 @@
 
 -(void)testSessionPropertyCallbacks {
 
+	SPAssertTestCompletesInTimeInterval(kDefaultNonAsyncLoadingTestTimeout);
+
 	// Ensure all block properties come back on the main queue
 	SPSession *session = [SPSession sharedSession];
 
@@ -58,6 +60,8 @@
 }
 
 -(void)testInvalidGetterCallbacks {
+
+	SPAssertTestCompletesInTimeInterval(kDefaultNonAsyncLoadingTestTimeout);
 	
 	// Ensure all blocks come back on the main queue
 	SPSession *session = [SPSession sharedSession];
@@ -106,6 +110,8 @@
 }
 
 -(void)testValidGetterCallbacks {
+
+	SPAssertTestCompletesInTimeInterval(kDefaultNonAsyncLoadingTestTimeout);
 	
 	// Ensure all blocks come back on the main queue
 	SPSession *session = [SPSession sharedSession];
@@ -154,6 +160,8 @@
 }
 
 -(void)testInvalidConstructorCallbacks {
+
+	SPAssertTestCompletesInTimeInterval(kDefaultNonAsyncLoadingTestTimeout);
 	
 	// Ensure all blocks come back on the main queue
 	SPSession *session = [SPSession sharedSession];
@@ -191,6 +199,8 @@
 }
 
 -(void)testValidConstructorCallbacks {
+
+	SPAssertTestCompletesInTimeInterval(kDefaultNonAsyncLoadingTestTimeout);
 	
 	// Ensure all blocks come back on the main queue
 	SPSession *session = [SPSession sharedSession];

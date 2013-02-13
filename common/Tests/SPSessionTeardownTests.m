@@ -32,10 +32,13 @@
 
 #import "SPSessionTeardownTests.h"
 #import "SPSession.h"
+#import "TestConstants.h"
 
 @implementation SPSessionTeardownTests
 
 -(void)testSessionLogout {
+
+	SPAssertTestCompletesInTimeInterval(kDefaultNonAsyncLoadingTestTimeout);
 	
 	[[SPSession sharedSession] logout:^{
 		
